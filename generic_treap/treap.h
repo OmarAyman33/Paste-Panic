@@ -26,6 +26,7 @@ private:
 	Node* leftRotate(Node* root);
 	Node* copyTree(Node* node);
 	void inorder(Node* node);
+	Node* merge(Node* a, Node* b);
 public:
 	Node* insert(Node* root, dataType key, int priority);
 	Node* root;
@@ -40,6 +41,10 @@ public:
 	tuple<Node*, Node*> split(dataType pivot);
 	Node* rangeQuery(dataType min, dataType max);
 	void inorder();
+	template<class dataType>
+	typename treap<dataType>::Node* treap<dataType>::merge(treap<dataType>& treap1, treap<dataType>& treap2) {
+		return merge(treap1.root, treap2.root);
+	}
 };
 
 // constuctor
@@ -245,4 +250,22 @@ template<class dataType>
 void treap<dataType>::inorder() {
 	inorder(root);
 	cout << endl;
+}
+
+
+
+template<class dataType>
+typename treap<dataType>::Node* treap<dataType>::merge(Node* a, Node* b) {
+	if (a == nullptr) return b;
+	if (b == nullptr) return a;
+
+	
+	if (a->priority < b->priority) {
+		a->right = merge(a->right, b);
+		return a;
+	}
+	else {
+		b->left = merge(a, b->left);
+		return b;
+	}
 }
