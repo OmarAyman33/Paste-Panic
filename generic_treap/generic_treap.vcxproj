@@ -123,6 +123,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Leaderboard_playerID.h" />
+    <ClInclude Include="Leaderboard_time.h" />
+    <ClInclude Include="leaderboard_treap.h" />
     <ClInclude Include="treap.h" />
   </ItemGroup>
   <ItemGroup>

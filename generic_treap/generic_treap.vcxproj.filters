@@ -18,6 +18,15 @@
     <ClInclude Include="treap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="leaderboard_treap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Leaderboard_time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Leaderboard_playerID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="treapTest.cpp">
