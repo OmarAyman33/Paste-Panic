@@ -20,28 +20,28 @@ class GameEngine:
     """
 
     PASSAGES: Dict[str, List[str]] = {
-        "Easy": [
-            "Neon lights glow. You type fast.",
-            "Panic Paste is pure arcade chaos.",
-            "Keep calm and hit the keys.",
-        ],
-        "Medium": [
-            "When the timer starts, stay focused and keep your rhythm steady.",
-            "Arcade nights feel different when your fingers move like lightning.",
-            "Speed matters, but accuracy is what keeps you on the board.",
-        ],
-        "Hard": [
-            "Cake or pie? I can tell a lot about you by which one you pick. It may seem silly, but cake people and pie people are really different. I know which one I hope you are, but that's not for me to decide. So, what is it? Cake or pie?",
-            "She didn't understand how changed worked. When she looked at today compared to yesterday, there was nothing that she could see that was different. Yet, when she looked at today compared to last year, she couldn't see how anything was ever the same.",
-            "It was a weird concept. Why would I really need to generate a random paragraph? Could I actually learn something from doing so? All these questions were running through her head as she pressed the generate button. To her surprise, she found what she least expected to see.",
-        ],
-        "Time-Trial": [
-            "This is a sprint against the clock. Every character counts. Do not look back, just keep typing as fast as you can before the time runs out! The pressure is on, the seconds are ticking, and your fingers must fly across the keyboard with absolute precision. There is no time for hesitation, no time for doubt. Only speed, rhythm, and the relentless pursuit of the perfect run.",
-            "Thirty seconds on the clock. Focus perfectly. Speed is key, but accuracy is the lock. Can you top the leaderboard before the buzzer sounds? The neon lights of the arcade beat in time with your heart. Every keystroke brings you closer to glory or defeat. Stay calm, stay sharp, and let the flowstate take over your mind and body.",
-            "Tick tock. The seconds are slipping away. Type with fury! Type with precision! The neon lights are watching your every move. A true master of the keyboard knows that hesitation is the enemy. Trust your muscle memory, let the words flow through you like digital water. The clock waits for no one, and neither should you.",
-            "In the year 2084, digital typists compete in the neon-soaked arenas of the Cyber-Grid. Their fingers are blur, their minds sharper than quantum computers. You are one of them, a contender for the title of Grandmaster. The crowd roars as you step up to the terminal. The timer begins... now! Do not falter.",
-            "The quick brown fox jumps over the lazy dog, but this is no simple typing test. This is an endurance run compressed into thirty seconds of adrenaline. Can you handle the heat? Can you keep your cool when the errors start to pile up? Breathe. Focus. Type. The leaderboard awaits a new champion."
-        ]
+    "Easy": [
+        "May the Force be with you.",
+        "There's no place like home.",
+        "I'm going to make him an offer he can't refuse.",
+    ],
+    "Medium": [
+        "Life moves pretty fast. If you don't stop and look around once in a while, you could miss it.",
+        "Mama always said life was like a box of chocolates. You never know what you're gonna get.",
+        "The first rule of Fight Club is: you do not talk about Fight Club.",
+    ],
+    "Hard": [
+        "I've seen things you people wouldn't believe. Attack ships on fire off the shoulder of Orion. I watched C-beams glitter in the dark near the Tannhäuser Gate. All those moments will be lost in time, like tears in rain. Time to die.",
+        "The path of the righteous man is beset on all sides by the inequities of the selfish and the tyranny of evil men. Blessed is he who, in the name of charity and good will, shepherds the weak through the valley of the darkness.",
+        "It's like in the great stories, Mr. Frodo. The ones that really mattered. Full of darkness and danger they were. And sometimes you didn't want to know the end, because how could the end be happy? How could the world go back to the way it was when so much bad had happened?",
+    ],
+    "Time-Trial": [
+        "Let me tell you something you already know. The world ain't all sunshine and rainbows. It's a very mean and nasty place and I don't care how tough you are it will beat you to your knees and keep you there permanently if you let it. You, me, or nobody is gonna hit as hard as life. But it ain't about how hard you hit. It's about how hard you can get hit and keep moving forward.",
+        "I don't have to tell you things are bad. Everybody knows things are bad. It's a depression. Everybody's out of work or scared of losing their job. The dollar buys a nickel's worth, banks are going bust, shopkeepers keep a gun under the counter. We know the air is unfit to breathe and our food is unfit to eat, and we sit watching our TVs while some local newscaster tells us that today we had fifteen homicides.",
+        "We think too much and feel too little. More than machinery we need humanity. More than cleverness we need kindness and gentleness. Without these qualities, life will be violent and all will be lost. The aeroplane and the radio have brought us closer together. The very nature of these inventions cries out for the goodness in men, cries out for universal brotherhood.",
+        "Good morning. In less than an hour, aircraft from here will join others from around the world. And you will be launching the largest aerial battle in the history of mankind. Mankind. That word should have new meaning for all of us today. We can't be consumed by our petty differences anymore. We will be united in our common interests.",
+        "Son, we live in a world that has walls, and those walls have to be guarded by men with guns. Who's gonna do it? You? You, Lt. Weinberg? I have a greater responsibility than you could possibly fathom. You weep for Santiago, and you curse the Marines. You have that luxury. You have the luxury of not knowing what I know."
+    ]
     }
 
     def __init__(self) -> None:
