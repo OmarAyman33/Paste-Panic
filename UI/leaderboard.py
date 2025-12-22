@@ -71,6 +71,13 @@ class LeaderboardService:
         LeaderboardEntry("NODE", "Hard",    113, 28.75),
         LeaderboardEntry("UMA",  "Easy",     67, 23.30),
         LeaderboardEntry("SYNC", "Medium",   86, 36.00),
+
+        # Time-Trial Dummy Data
+        LeaderboardEntry("FLASH", "Time-Trial", 140, 30.00),
+        LeaderboardEntry("SONIC", "Time-Trial", 135, 30.00),
+        LeaderboardEntry("TURBO", "Time-Trial", 128, 30.00),
+        LeaderboardEntry("BLUR",  "Time-Trial", 120, 30.00),
+        LeaderboardEntry("DASH",  "Time-Trial", 115, 30.00),
     ]
 
 

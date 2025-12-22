@@ -109,7 +109,7 @@ class PanicPasteApp(tk.Tk):
 
         self.pages: Dict[str, tk.Frame] = {}
         
-        for PageClass in (HomePage, SetupPage, GamePage, ResultsPage, LeaderboardPage):
+        for PageClass in (HomePage, SetupPage, GamePage, TimeTrialPage, ResultsPage, LeaderboardPage):
             page = PageClass(parent=self.container, app=self)
             self.pages[PageClass.__name__] = page
             page.grid(row=0, column=0, sticky="NSEW")
@@ -306,7 +306,7 @@ class SetupPage(NeonPage):
         )
         diff_lbl.grid(row=0, column=1, sticky="w", pady=(0, 8))
 
-        self.difficulties: List[str] = ["Easy", "Medium", "Hard"]
+        self.difficulties: List[str] = ["Easy", "Medium", "Hard","Time-Trial"]
         self.diff_index: int = 0
         self.diff_var: tk.StringVar = tk.StringVar(value=self.difficulties[self.diff_index])
 
@@ -325,9 +325,9 @@ class SetupPage(NeonPage):
 
         self.diff_display = tk.Label(
             diff_picker,
-            text=f"{self.diff_var.get()}",
+            textvariable=self.diff_var,
             bg=Theme.PANEL2,
-            fg=Theme.NEON_YELLOW,
+            fg=Theme.NEON_PINK if self.diff_index == 3 else Theme.NEON_YELLOW,
             font=Theme.font(14, "bold"),
             width=10,
             anchor="center",
@@ -369,8 +369,14 @@ class SetupPage(NeonPage):
 
     def _cycle_diff(self, direction: int) -> None:
         self.diff_index = (self.diff_index + direction) % len(self.difficulties)
-        self.diff_var.set(self.difficulties[self.diff_index])
-        self.diff_display.configure(text=self.diff_var.get())
+        val = self.difficulties[self.diff_index]
+        self.diff_var.set(val)
+        
+        # Update color dynamically
+        if val == "Time-Trial":
+            self.diff_display.configure(fg=Theme.NEON_PINK)
+        else:
+            self.diff_display.configure(fg=Theme.NEON_YELLOW)
 
     def on_show(self) -> None:
         self.error.configure(text="")
@@ -393,7 +399,10 @@ class SetupPage(NeonPage):
             return
 
         self.app.engine.start_game(name, diff)
-        self.app.show("GamePage")
+        if diff == "Time-Trial":
+             self.app.show("TimeTrialPage")
+        else:
+             self.app.show("GamePage")
 
 
 # ============================================================
@@ -448,13 +457,14 @@ class GamePage(NeonPage):
         )
         timer_frame.pack(side="right", fill="y")
 
-        tk.Label(
+        self.timer_header = tk.Label(
             timer_frame,
             text="TIMER",
             bg=Theme.PANEL,
             fg=Theme.NEON_PINK,
             font=Theme.font(12, "bold"),
-        ).pack(padx=14, pady=(10, 6))
+        )
+        self.timer_header.pack(padx=14, pady=(10, 6))
 
         self.timer_label = tk.Label(
             timer_frame,
@@ -542,7 +552,12 @@ class GamePage(NeonPage):
              target_short = self.app.engine._normalize(self.app.engine.target_text)
              typed_short = self.app.engine._normalize(curr_text)
              if typed_short != target_short:
-                  self.status_label.configure(text="KEEP TYPING…")
+                  # Only show keep typing if timer isn't running in standard mode? 
+                  # Or just always.
+                   if self.app.engine.is_running:
+                        pass # keep timer
+                   else:
+                        self.status_label.configure(text="KEEP TYPING…")
 
     def _apply_highlighting(self, char_correctness: List[bool], target_len: int) -> None:
         self.text.tag_remove("error", "1.0", "end")
@@ -573,15 +588,20 @@ class GamePage(NeonPage):
         self.text.edit_reset()
         self.text.focus_set()
 
-        self.timer_label.configure(text="0.00s")
+        self._reset_timer_label()
         self.status_label.configure(text="TYPE TO START")
 
+        self.timer_header.configure(fg=Theme.NEON_PINK) # Default
+        
         if self._timer_job is not None:
             self.after_cancel(self._timer_job)
             self._timer_job = None
 
         self.text.edit_modified(False)
         self._completion_processed = False
+
+    def _reset_timer_label(self) -> None:
+         self.timer_label.configure(text="0.00s")
 
     def _reset_run(self) -> None:
         self.app.engine.start_game(self.app.engine.player_name, self.app.engine.difficulty)
@@ -606,6 +626,7 @@ class GamePage(NeonPage):
             self._timer_job = None
 
     def _tick(self) -> None:
+        """Standard Timer: Count Up"""
         if not self.app.engine.is_running:
             return
 
@@ -626,6 +647,9 @@ class GamePage(NeonPage):
         # Get result from engine
         res: GameResult = self.app.engine.get_results()
         
+        self._save_and_show_results(res)
+
+    def _save_and_show_results(self, res: GameResult) -> None:
         # Create strict entry for leaderboard
         entry = LeaderboardEntry(
             player_name=res.player_name,
@@ -650,6 +674,55 @@ class GamePage(NeonPage):
 
     def _hook_paste(self, _event: tk.Event) -> Optional[str]:
         return None
+
+
+# ============================================================
+# 3.5) Time Trial Page
+# ============================================================
+class TimeTrialPage(GamePage):
+    """
+    Inherits from GamePage but alters the timer logic to countdown from 30s.
+    """
+    def on_show(self) -> None:
+        super().on_show()
+        # Visual Tweaks for Time Trial
+        self.header_hint.configure(text="TIME TRIAL  •  SURVIVE")
+        self.timer_header.configure(fg=Theme.NEON_PINK)
+        self.timer_label.configure(text="30.00s", fg=Theme.NEON_PINK)
+
+    def _reset_timer_label(self) -> None:
+        self.timer_label.configure(text="30.00s")
+
+    def _tick(self) -> None:
+        """Countdown Timer: 30s -> 0s"""
+        if not self.app.engine.is_running:
+            return
+
+        elapsed = self.app.engine.get_elapsed_time()
+        remaining = 30.0 - elapsed
+        
+        if remaining <= 0:
+            remaining = 0.0
+            self.timer_label.configure(text="0.00s")
+            self._handle_timeout()
+            return
+        
+        self.timer_label.configure(text=f"{remaining:0.2f}s")
+        self._timer_job = self.after(33, self._tick)
+
+    def _handle_timeout(self) -> None:
+        self._completion_processed = True
+        self._stop_timer()
+        
+        # Force finish in engine to calc stats based on what we have
+        curr_text = self.text.get("1.0", "end")
+        self.app.engine.force_finish(curr_text)
+        
+        res: GameResult = self.app.engine.get_results()
+        # Override time to 30.00 for consistency in result display
+        res.time_seconds = 30.00
+        
+        self._save_and_show_results(res)
 
 
 # ============================================================
@@ -686,7 +759,7 @@ class ResultsPage(NeonPage):
         btns.pack(pady=6)
 
         ttk.Button(btns, text="VIEW LEADERBOARD", command=lambda: self.app.show("LeaderboardPage")).grid(row=0, column=0, padx=10)
-        ttk.Button(btns, text="RETRY", command=lambda: self.app.show("GamePage")).grid(row=0, column=1, padx=10)
+        ttk.Button(btns, text="RETRY", command=lambda: self.app.show("GamePage") if self.app.last_run_result and self.app.last_run_result.difficulty != "Time-Trial" else self.app.show("TimeTrialPage")).grid(row=0, column=1, padx=10)
         ttk.Button(btns, text="HOME", command=lambda: self.app.show("HomePage")).grid(row=0, column=2, padx=10)
 
     def on_show(self) -> None:
@@ -696,6 +769,12 @@ class ResultsPage(NeonPage):
 
         self.header_title.configure(text=f"PANIC PASTE — {res.player_name}")
         self.header_hint.configure(text="RESULTS")
+        
+        # Different message for Time Trial?
+        if res.difficulty == "Time-Trial":
+             self.big.configure(text="TIME'S UP!", fg=Theme.NEON_PINK)
+        else:
+             self.big.configure(text="RUN COMPLETE!", fg=Theme.NEON_GREEN)
 
         self.stats.configure(
             text=(
@@ -732,7 +811,7 @@ class LeaderboardPage(NeonPage):
         tabbar.pack(fill="x", pady=(0, 10))
         self.tab_buttons: Dict[str, tk.Label] = {}
 
-        for diff in ["Easy", "Medium", "Hard"]:
+        for diff in ["Easy", "Medium", "Hard", "Time-Trial"]:
             btn = tk.Label(
                 tabbar,
                 text=f"[ {diff.upper()} ]",
@@ -783,7 +862,7 @@ class LeaderboardPage(NeonPage):
         current = self.selected_diff.get()
         for diff, lbl in self.tab_buttons.items():
             if diff == current:
-                lbl.configure(fg=Theme.NEON_CYAN)
+                lbl.configure(fg=Theme.NEON_PINK if diff == "Time-Trial" else Theme.NEON_CYAN)
             else:
                 lbl.configure(fg=Theme.MUTED)
 
@@ -800,13 +879,16 @@ class LeaderboardPage(NeonPage):
         header = tk.Frame(self.table_container, bg=Theme.PANEL)
         header.pack(fill="x")
 
-        cols = [("RANK", 6), ("NAME", 16), ("WPM", 8), ("TIME", 10)]
+        if difficulty == "Time-Trial":
+             cols = [("RANK", 6), ("NAME", 20), ("WPM", 10)]
+        else:
+             cols = [("RANK", 6), ("NAME", 16), ("WPM", 8), ("TIME", 10)]
         for i, (c, w) in enumerate(cols):
             tk.Label(
                 header,
                 text=c,
                 bg=Theme.PANEL,
-                fg=Theme.NEON_CYAN,
+                fg=Theme.NEON_PINK if difficulty == "Time-Trial" else Theme.NEON_CYAN,
                 font=Theme.font(11, "bold"),
                 width=w,
                 anchor="w",
@@ -838,8 +920,12 @@ class LeaderboardPage(NeonPage):
             )
             row.pack(fill="x", padx=10, pady=6)
 
-            values = [f"#{idx}", entry.player_name, str(entry.wpm), f"{entry.time_seconds:.2f}s"]
-            widths = [6, 16, 8, 10]
+            if difficulty == "Time-Trial":
+                 values = [f"#{idx}", entry.player_name, str(entry.wpm)]
+                 widths = [6, 20, 10]
+            else:
+                 values = [f"#{idx}", entry.player_name, str(entry.wpm), f"{entry.time_seconds:.2f}s"]
+                 widths = [6, 16, 8, 10]
 
             for i, (val, w) in enumerate(zip(values, widths)):
                 tk.Label(
@@ -854,6 +940,8 @@ class LeaderboardPage(NeonPage):
                 ).grid(row=0, column=i, sticky="w", pady=6)
 
         # Update footer note
+        color_name = "PINK" if difficulty == "Time-Trial" else "CYAN"
+        
         if last_result is None:
             self.note.configure(text="PLAY A RUN TO GET ON THE BOARD.")
         else:
