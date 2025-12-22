@@ -377,3 +377,7 @@ build/
 .vscode/
 *.spec
 *.sln
+# Visual Studio Project Files (Explicitly Ignored)
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
