@@ -6,13 +6,15 @@ import pyglet
 
 from engine import GameEngine, GameResult
 from leaderboard import LeaderboardService, LeaderboardEntry
+from text_editor import TextEditor
 
 FONT_FILE: str = "Public Pixel.ttf"
 PIXEL_FONT_NAME: str = "Public Pixel"
 
 pyglet.font.add_file(FONT_FILE)
 
-class Theme:
+class Theme: # Theme class for storing colors and fonts (consider it a .css file, might be moved to a separate file in the future)
+    # arcade style colors
     BG: str = "#07070B"
     PANEL: str = "#0E1020"
     PANEL2: str = "#0B0C14"
@@ -21,16 +23,18 @@ class Theme:
     NEON_PINK: str = "#FF2D95"
     NEON_GREEN: str = "#22FF88"
     NEON_YELLOW: str = "#FFE66D"
+    NEON_PURPLE: str = "#D500F9"
 
     TEXT: str = "#E8ECFF"
     MUTED: str = "#A7B0D6"
     DANGER: str = "#FF3B3B"
 
+    # method to create a font tuple
     @staticmethod
     def font(size: int, weight: str = "normal") -> Tuple[str, int, str]:
         return (PIXEL_FONT_NAME, size, weight)
 
-    @staticmethod
+    @staticmethod # method to apply ttk styles to every root window.
     def apply_ttk_style(root: tk.Tk) -> None:
         style = ttk.Style(root)
         try:
@@ -83,11 +87,7 @@ class Theme:
 # -------------------------
 # App Root (Page manager)
 # -------------------------
-class PanicPasteApp(tk.Tk):
-    """
-    Main Application class.
-    """
-    
+class PanicPasteApp(tk.Tk):    
     def __init__(self) -> None:
         super().__init__()
 
@@ -98,16 +98,16 @@ class PanicPasteApp(tk.Tk):
 
         Theme.apply_ttk_style(self)
 
-        self.engine: GameEngine = GameEngine()
-        self.leaderboard_service: LeaderboardService = LeaderboardService()
+        self.engine = GameEngine()
+        self.leaderboard_service = LeaderboardService()
         
         # State: last run result for highlighting
-        self.last_run_result: Optional[GameResult] = None
+        self.last_run_result = None
 
-        self.container: tk.Frame = tk.Frame(self, bg=Theme.BG)
+        self.container = tk.Frame(self, bg=Theme.BG)
         self.container.pack(fill="both", expand=True)
 
-        self.pages: Dict[str, tk.Frame] = {}
+        self.pages = {}
         
         for PageClass in (HomePage, SetupPage, GamePage, TimeTrialPage, ResultsPage, LeaderboardPage):
             page = PageClass(parent=self.container, app=self)
@@ -126,7 +126,7 @@ class PanicPasteApp(tk.Tk):
             getattr(page, "on_show")()
 
 # -------------------------
-# Base Page
+# Base Page - > used as a template for other pages
 # -------------------------
 class NeonPage(tk.Frame):
     def __init__(self, parent: tk.Widget, app: PanicPasteApp) -> None:
@@ -137,7 +137,7 @@ class NeonPage(tk.Frame):
             self,
             bg=Theme.PANEL,
             highlightthickness=2,
-            highlightbackground=Theme.NEON_CYAN,
+            highlightbackground=Theme.NEON_CYAN, # cool arcade style border
         )
         self.panel.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.86, relheight=0.84)
 
@@ -145,7 +145,7 @@ class NeonPage(tk.Frame):
             self.panel,
             bg=Theme.PANEL2,
             highlightthickness=2,
-            highlightbackground=Theme.NEON_PINK,
+            highlightbackground=Theme.NEON_PINK, # cool arcade style border (chose two different colors for that retro look)
         )
         self.inner.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.965, relheight=0.955)
 
@@ -185,7 +185,15 @@ class HomePage(NeonPage):
 
         center = tk.Frame(self.body, bg=Theme.PANEL2)
         center.pack(expand=True)
-
+        
+        """
+            note about tkinter: 
+            - each frame is a container for other widgets
+            - each widget is a container for other widgets
+            - each widget has a pack, grid, place method to position it
+            - the order of packing inside of a frame determines the position, similar to a Vbox & Hbox in JavaFx
+        """
+        
         self.title_label = tk.Label(
             center,
             text="PANIC\nPASTE",
@@ -204,6 +212,7 @@ class HomePage(NeonPage):
             font=Theme.font(14, "bold"),
         )
         self.subtitle.pack(pady=(0, 26))
+        
         # flashing press to start label
         self.flash = tk.Label(
             center,
@@ -227,23 +236,39 @@ class HomePage(NeonPage):
         self._flash_job: Optional[str] = None
 
     def on_show(self) -> None:
+        """
+        on_show is called when the page is shown, used to define dynamic behavior such as this flashing text effect
+        """
         self._bind_start_keys()
         self._start_flashing()
 
+
     def _bind_start_keys(self) -> None:
+        """
+        _bind_start_keys is used to bind the start keys, in this case any key or mouse click
+        """
         self.bind_all("<Key>", self._go)
         self.bind_all("<Button-1>", self._go)
 
+
     def _unbind_start_keys(self) -> None:
+        """
+        _unbind_start_keys is used to unbind the start keys, in this case any key or mouse click
+        """
         self.unbind_all("<Key>")
         self.unbind_all("<Button-1>")
 
+
     def _start_flashing(self) -> None:
+        """
+        _start_flashing is used to start the flashing effect
+        """
         # Cancel any existing flash job to prevent multiple concurrent loops
         if self._flash_job is not None:
             self.after_cancel(self._flash_job)
         self._flash_on = True
         self._flash_tick()
+
 
     def _flash_tick(self) -> None:
         # Toggle the boolean state for the flashing effect
@@ -253,22 +278,30 @@ class HomePage(NeonPage):
         # Schedule the next execution of this method in 450ms to create a continuous loop
         self._flash_job = self.after(450, self._flash_tick)
 
+
     def _go(self, _event: Optional[tk.Event] = None) -> None:
+        """
+        _go is called when the start keys are pressed, in this case any key or mouse click
+        """
         self._unbind_start_keys()
         if self._flash_job is not None:
             self.after_cancel(self._flash_job)
             self._flash_job = None
-        self.app.show("SetupPage")
+        self.app.show("SetupPage") # switch to next page.
 
 
 # ============================================================
 # 2) Setup Page
 # ============================================================
 class SetupPage(NeonPage):
+    """
+    Page for player configuration (Name, Difficulty).
+    Handles input validation and dynamic difficulty toggling.
+    """
     def __init__(self, parent: tk.Widget, app: PanicPasteApp) -> None:
         super().__init__(parent, app)
         self.header_hint.configure(text="SETUP")
-
+        # wrapper frame to center the content
         wrap = tk.Frame(self.body, bg=Theme.PANEL2)
         wrap.pack(expand=True)
 
@@ -368,11 +401,15 @@ class SetupPage(NeonPage):
         self.name_entry.bind("<Return>", lambda _e: self._start())
 
     def _cycle_diff(self, direction: int) -> None:
+        """
+        Cycles through difficulty options (Easy, Medium, Hard, Time-Trial).
+        Updates the displayed text and color theme dynamically.
+        """
         self.diff_index = (self.diff_index + direction) % len(self.difficulties)
         val = self.difficulties[self.diff_index]
         self.diff_var.set(val)
         
-        # Update color dynamically
+        # Update color dynamically for visual feedback
         if val == "Time-Trial":
             self.diff_display.configure(fg=Theme.NEON_PINK)
         else:
@@ -409,6 +446,11 @@ class SetupPage(NeonPage):
 # 3) Game Page
 # ============================================================
 class GamePage(NeonPage):
+    """
+    Core Gameplay Page.
+    Displays passage text, typing input area, and real-time statistics (Timer).
+    Handles real-time text validation and game loop management.
+    """
     def __init__(self, parent: tk.Widget, app: PanicPasteApp) -> None:
         super().__init__(parent, app)
         self.header_hint.configure(text="RUNNING…")
@@ -534,16 +576,63 @@ class GamePage(NeonPage):
         ttk.Button(controls, text="QUIT TO HOME", command=self._quit_to_home).pack(side="right")
 
         self.text.bind("<<Modified>>", self._on_modified)
-        self.text.bind("<KeyRelease>", self._on_key_release)
+        # self.text.bind("<KeyRelease>", self._on_key_release) # Moved logic to specific handlers
+        self.text.bind("<Key>", self._on_key)
         self.text.bind("<Control-c>", self._hook_copy)
         self.text.bind("<Control-x>", self._hook_cut)
         self.text.bind("<Control-v>", self._hook_paste)
-    
-    def _on_key_release(self, event: Optional[tk.Event] = None) -> None:
-        curr_text = self.text.get("1.0", "end")
+        self.text.bind("<BackSpace>", self._handle_backspace)
+        self.text.bind("<Delete>", self._handle_delete)
+
+    def _get_cursor_index(self) -> int:
+        """
+        Robustly get the cursor index as a flat integer character offset.
+        """
+        try:
+            # count returns a tuple often, or None if ranges invalid
+            count = self.text.count("1.0", "insert", "chars") 
+            return count[0] if count else 0
+        except tk.TclError:
+            return 0
+
+    def _get_selection_indices(self) -> Tuple[int, int]:
+        """
+        Robustly get selection start/end as flat integer character offsets.
+        Returns (-1, -1) if no selection exists.
+        """
+        try:
+            # Check if selection tag exists first
+            ranges = self.text.tag_ranges("sel")
+            if not ranges:
+                return -1, -1
+            
+            start_idx = ranges[0]
+            end_idx = ranges[1]
+            
+            # Use 'count' to get precise char offset
+            count_start = self.text.count("1.0", start_idx, "chars")
+            count_end = self.text.count("1.0", end_idx, "chars")
+            
+            s = count_start[0] if count_start else 0
+            e = count_end[0] if count_end else 0
+            
+            return s, e
+        except tk.TclError:
+            return -1, -1
+
+    def _update_text_and_cursor(self, new_text: str, new_cursor: int) -> None:
+        self.text.delete("1.0", "end")
+        self.text.insert("1.0", new_text)
         
+        # Restore cursor
+        self.text.mark_set("insert", f"1.0+{new_cursor}c")
+        self.text.see("insert")
+        
+        # Trigger correctness check
+        self._check_correctness(new_text)
+
+    def _check_correctness(self, curr_text: str) -> None:
         _, complete, char_correctness = self.app.engine.submit_text(curr_text)
-        
         self._apply_highlighting(char_correctness, len(self.app.engine.target_text))
         
         if complete and not self._completion_processed:
@@ -551,13 +640,72 @@ class GamePage(NeonPage):
         else:
              target_short = self.app.engine._normalize(self.app.engine.target_text)
              typed_short = self.app.engine._normalize(curr_text)
-             if typed_short != target_short:
-                  # Only show keep typing if timer isn't running in standard mode? 
-                  # Or just always.
-                   if self.app.engine.is_running:
-                        pass # keep timer
-                   else:
-                        self.status_label.configure(text="KEEP TYPING…")
+             # Basic check to stop timer if it's completely wrong or something? 
+             # Existing logic didn't do much here except 'pass'
+             pass
+
+    def _on_key(self, event: tk.Event) -> Optional[str]:
+        # Allow navigation keys and shortcuts to pass through (handled by hooks or default)
+        if event.keysym in ("Left", "Right", "Up", "Down", "Home", "End", "Return", "Escape"):
+            return None
+        if event.state & 4: # Control key
+            return None
+
+        if event.char and event.char.isprintable():
+            current_text = self.text.get("1.0", "end-1c") # -1c to exclude trailing newline
+            cursor = self._get_cursor_index()
+            
+            # Handle selection overwrite
+            start, end = self._get_selection_indices()
+            if start != -1:
+                current_text, cursor = TextEditor.range_delete(current_text, start, end)
+                # After delete, cursor is at start
+            
+            new_text, new_cursor = TextEditor.type_char(current_text, cursor, event.char)
+            self._update_text_and_cursor(new_text, new_cursor)
+            
+            self._start_timer_if_needed()
+            return "break" # Stop default insertion
+        
+        return None
+
+    def _handle_backspace(self, event: tk.Event) -> Optional[str]:
+        current_text = self.text.get("1.0", "end-1c")
+        start, end = self._get_selection_indices()
+        
+        if start != -1:
+            # Selection delete
+            new_text, new_cursor = TextEditor.range_delete(current_text, start, end)
+        else:
+            # Single char delete
+            cursor = self._get_cursor_index()
+            if cursor > 0:
+                new_text, new_cursor = TextEditor.range_delete(current_text, cursor - 1, cursor)
+            else:
+                return "break"
+                
+        self._update_text_and_cursor(new_text, new_cursor)
+        self._start_timer_if_needed()
+        return "break"
+
+    def _handle_delete(self, event: tk.Event) -> Optional[str]:
+        current_text = self.text.get("1.0", "end-1c")
+        start, end = self._get_selection_indices()
+        
+        if start != -1:
+            # Selection delete
+            new_text, new_cursor = TextEditor.range_delete(current_text, start, end)
+        else:
+            # Single char delete forward
+            cursor = self._get_cursor_index()
+            if cursor < len(current_text):
+                new_text, new_cursor = TextEditor.range_delete(current_text, cursor, cursor + 1)
+            else:
+                return "break"
+                
+        self._update_text_and_cursor(new_text, new_cursor)
+        self._start_timer_if_needed()
+        return "break"
 
     def _apply_highlighting(self, char_correctness: List[bool], target_len: int) -> None:
         self.text.tag_remove("error", "1.0", "end")
@@ -650,30 +798,112 @@ class GamePage(NeonPage):
         self._save_and_show_results(res)
 
     def _save_and_show_results(self, res: GameResult) -> None:
-        # Create strict entry for leaderboard
-        entry = LeaderboardEntry(
-            player_name=res.player_name,
+        # Use modular insert_player interface
+        self.app.leaderboard_service.insert_player(
+            username=res.player_name,
             difficulty=res.difficulty,
-            wpm=res.wpm,
-            time_seconds=round(res.time_seconds, 2)
+            score=res.wpm,
+            time_seconds=res.time_seconds # Optional param I added for Python fix
         )
         
-        # Add to leaderboard service
-        self.app.leaderboard_service.add_entry(entry)
+        self.app.leaderboard_service.insert_player(
+            username=res.player_name,
+            difficulty=res.difficulty,
+            score=res.wpm,
+            time_seconds=res.time_seconds # Optional param added for Python prototype to support time display
+        )
+        
+        # Note: insert_player in the requested C++ interface might be strict (username, diff, score).
+        # We overloaded it in Python to allow passing time_seconds for better UI feedback.
+        # If strict adherence is required, time would be dropped or handled internally.
+        # Current insert_player defaults time to 0.0 or handles it internally.
         
         # Save results for current session display
         self.app.last_run_result = res
         
         self.app.show("ResultsPage")
 
+    # -------------------------------------------------------------------------
+    # Text Editing Hooks
+    # -------------------------------------------------------------------------
+    # These methods intercept system events to route text manipulation through
+    # the modular TextEditor class. This decoupling is critical for the 
+    # planned migration to a C++ backend.
+    # -------------------------------------------------------------------------
+
     def _hook_copy(self, _event: tk.Event) -> Optional[str]:
-        return None
+        """
+        Intercepts Copy event.
+        Extracts selection via TextEditor and pushes to system clipboard.
+        """
+        current_text = self.text.get("1.0", "end-1c")
+        start, end = self._get_selection_indices()
+        
+        if start != -1:
+            # Delegate logic to TextEditor (stateless)
+            content = TextEditor.copy(current_text, start, end)
+            
+            # Interaction with System Clipboard
+            self.clipboard_clear()
+            self.clipboard_append(content)
+            self.update() # Force update to ensure clipboard sync
+            
+        return "break" # Prevent default Tkinter handling
 
     def _hook_cut(self, _event: tk.Event) -> Optional[str]:
-        return None
+        """
+        Intercepts Cut event.
+        Performs copy-delete via TextEditor and updates UI state.
+        """
+        current_text = self.text.get("1.0", "end-1c") # getting text via tkinter
+        start, end = self._get_selection_indices()
+        
+        if start != -1:
+            # Atomic cut operation via TextEditor
+            new_text, new_cursor, clipboard_content = TextEditor.cut(current_text, start, end)
+            
+            # Update Clipboard
+            self.clipboard_clear()
+            self.clipboard_append(clipboard_content)
+            self.update() # Force sync
+            
+            # Update Editor State
+            self._update_text_and_cursor(new_text, new_cursor)
+            self._start_timer_if_needed()
+            
+        return "break"
 
     def _hook_paste(self, _event: tk.Event) -> Optional[str]:
-        return None
+        """
+        Intercepts Paste event.
+        Retrieves system clipboard, normalizes, and injects via TextEditor.
+        """
+        try:
+            content = self.clipboard_get()
+        except tk.TclError:
+            return "break" # Clipboard empty or unavailable
+            
+        if not content:
+            return "break"
+
+        # Normalize line endings to prevent cursor drift (Windows \r\n vs Tkinter \n)
+        content = content.replace("\r\n", "\n")
+            
+        current_text = self.text.get("1.0", "end-1c")
+        cursor = self._get_cursor_index()
+        
+        # If selection exists, Paste acts as "Replace Selection"
+        start, end = self._get_selection_indices()
+        if start != -1:
+             current_text, cursor = TextEditor.range_delete(current_text, start, end)
+
+        # Insert content
+        new_text, new_cursor = TextEditor.paste(current_text, cursor, content)
+        
+        self._update_text_and_cursor(new_text, new_cursor)
+        self._start_timer_if_needed()
+        
+        return "break"
 
 
 # ============================================================
@@ -681,7 +911,12 @@ class GamePage(NeonPage):
 # ============================================================
 class TimeTrialPage(GamePage):
     """
-    Inherits from GamePage but alters the timer logic to countdown from 30s.
+    Subclass of GamePage for the 'Time Trial' mode.
+    
+    Key Differences:
+    - Timer counts DOWN from 30 seconds instead of UP.
+    - Game ends automatically when time expires.
+    - Visual theme adjustments (Pink timer).
     """
     def on_show(self) -> None:
         super().on_show()
@@ -694,7 +929,11 @@ class TimeTrialPage(GamePage):
         self.timer_label.configure(text="30.00s")
 
     def _tick(self) -> None:
-        """Countdown Timer: 30s -> 0s"""
+        """
+        Countdown Timer Logic.
+        Calculates remaining time (30s - elapsed) and handles timeout event.
+        Overrides GamePage._tick.
+        """
         if not self.app.engine.is_running:
             return
 
@@ -729,36 +968,58 @@ class TimeTrialPage(GamePage):
 # 4) Results Page
 # ============================================================
 class ResultsPage(NeonPage):
+    """
+    Displays the outcome of a finished run (WPM, Time, Correctness).
+    Providers options to Retry, Return Home, or View Leaderboard.
+    """
     def __init__(self, parent: tk.Widget, app: PanicPasteApp) -> None:
         super().__init__(parent, app)
         self.header_hint.configure(text="RESULTS")
 
-        wrap = tk.Frame(self.body, bg=Theme.PANEL2)
-        wrap.pack(expand=True)
+        # Top frame for title and hint
+        top = tk.Frame(self.body, bg=Theme.PANEL2)
+        top.pack(fill="x", padx=18, pady=(18, 10))
 
+        # Center frame for main content
+        center = tk.Frame(self.body, bg=Theme.PANEL2)
+        center.pack(expand=True, padx=20, pady=20)
+
+        # Result Details Container
+        self.stats_frame = tk.Frame(
+            center, 
+            bg=Theme.PANEL, 
+            highlightthickness=2, 
+            highlightbackground=Theme.NEON_PURPLE # Distinct border color for Results
+        )
+        self.stats_frame.pack(fill="x", pady=(0, 20), ipadx=20, ipady=10)
+
+        # Big message (e.g., "RUN COMPLETE!" or "TIME'S UP!")
         self.big = tk.Label(
-            wrap,
+            self.stats_frame, # Changed parent to stats_frame
             text="RUN COMPLETE!",
-            bg=Theme.PANEL2,
+            bg=Theme.PANEL, # Changed background to PANEL
             fg=Theme.NEON_GREEN,
             font=Theme.font(26, "bold"),
         )
-        self.big.pack(pady=(6, 16))
+        self.big.pack(pady=(12, 16)) # Adjusted pady
 
+        # Detailed statistics display
         self.stats = tk.Label(
-            wrap,
+            self.stats_frame, # Changed parent to stats_frame
             text="",
-            bg=Theme.PANEL2,
+            bg=Theme.PANEL, # Changed background to PANEL
             fg=Theme.TEXT,
             font=Theme.font(13, "normal"),
             justify="left",
         )
-        self.stats.pack(pady=(0, 18))
+        self.stats.pack(pady=(0, 12)) # Adjusted pady
 
-        btns = tk.Frame(wrap, bg=Theme.PANEL2)
-        btns.pack(pady=6)
+        # Buttons for navigation
+        btns = tk.Frame(center, bg=Theme.PANEL2) # Changed parent to center
+        btns.pack(pady=(10, 0)) # Adjusted pady
 
         ttk.Button(btns, text="VIEW LEADERBOARD", command=lambda: self.app.show("LeaderboardPage")).grid(row=0, column=0, padx=10)
+        # Retry button logic: go to GamePage for normal, TimeTrialPage for time trial
         ttk.Button(btns, text="RETRY", command=lambda: self.app.show("GamePage") if self.app.last_run_result and self.app.last_run_result.difficulty != "Time-Trial" else self.app.show("TimeTrialPage")).grid(row=0, column=1, padx=10)
         ttk.Button(btns, text="HOME", command=lambda: self.app.show("HomePage")).grid(row=0, column=2, padx=10)
 
@@ -790,13 +1051,27 @@ class ResultsPage(NeonPage):
 # 5) Leaderboard Page
 # ============================================================
 class LeaderboardPage(NeonPage):
+    """
+    Displays the top 10 scores for each difficulty category.
+    Features tabbed navigation and highlights the current user's latest run.
+    """
     def __init__(self, parent: tk.Widget, app: PanicPasteApp) -> None:
+        """
+        Initializes the LeaderboardPage.
+        Sets up the UI elements for displaying leaderboard data,
+        including difficulty tabs and the score table.
+        """
         super().__init__(parent, app)
         self.header_hint.configure(text="LEADERBOARD")
 
+        # StringVar to hold the currently selected difficulty tab
+        self.selected_diff: tk.StringVar = tk.StringVar(value="Easy")
+        
+        # Main layout container for the leaderboard content
         outer = tk.Frame(self.body, bg=Theme.PANEL2)
-        outer.pack(fill="both", expand=True, padx=18, pady=18)
+        outer.pack(fill="both", expand=True, padx=20, pady=20) # Adjusted padding
 
+        # Title for the leaderboard
         title = tk.Label(
             outer,
             text="TOP 10 PILOTS",
@@ -805,35 +1080,42 @@ class LeaderboardPage(NeonPage):
             font=Theme.font(18, "bold"),
         )
         title.pack(anchor="w", pady=(0, 10))
-
-        self.selected_diff: tk.StringVar = tk.StringVar(value="Easy")
-        tabbar = tk.Frame(outer, bg=Theme.PANEL2)
-        tabbar.pack(fill="x", pady=(0, 10))
+        
+        # Frame for difficulty selection tabs
+        tabs = tk.Frame(outer, bg=Theme.PANEL2) # Renamed from tabbar
+        tabs.pack(fill="x", pady=(0, 10)) # Adjusted padding
+        
+        # Dictionary to store references to tab buttons for dynamic styling
         self.tab_buttons: Dict[str, tk.Label] = {}
-
         for diff in ["Easy", "Medium", "Hard", "Time-Trial"]:
             btn = tk.Label(
-                tabbar,
+                tabs, # Parent is now 'tabs'
                 text=f"[ {diff.upper()} ]",
                 bg=Theme.PANEL2,
                 fg=Theme.MUTED,
-                font=Theme.font(12, "bold"),
+                font=Theme.font(10, "bold"), # Changed font size
                 cursor="hand2",
-                padx=12,
-                pady=6,
             )
-            btn.pack(side="left", padx=(0, 10))
+            btn.pack(side="left", padx=(0, 15)) # Adjusted padx
+            # Bind click event with partial function for strict scoping
             btn.bind("<Button-1>", lambda e, d=diff: self._set_tab(d))
             self.tab_buttons[diff] = btn
 
-        self.table_container: tk.Frame = tk.Frame(
+        # Leaderboard Table Container
+        # Outer frame with highlight for the table
+        self.table_frame = tk.Frame( # Renamed from table_container
             outer,
             bg=Theme.PANEL,
             highlightthickness=2,
             highlightbackground=Theme.NEON_CYAN,
         )
-        self.table_container.pack(fill="both", expand=True)
+        self.table_frame.pack(fill="both", expand=True)
 
+        # Inner frame for the actual table content, allowing for padding within the border
+        self.table_container = tk.Frame(self.table_frame, bg=Theme.PANEL2)
+        self.table_container.pack(fill="both", expand=True, padx=2, pady=2)
+
+        # Note/hint label for user feedback (e.g., "Your run is highlighted")
         self.note = tk.Label(
             outer,
             text="",
@@ -841,8 +1123,9 @@ class LeaderboardPage(NeonPage):
             fg=Theme.MUTED,
             font=Theme.font(10, "bold"),
         )
-        self.note.pack(anchor="w", pady=(10, 0))
+        self.note.pack(anchor="w", pady=(10, 0)) # Adjusted pady
 
+        # Footer frame for navigation buttons
         footer = tk.Frame(outer, bg=Theme.PANEL2)
         footer.pack(fill="x", pady=(12, 0))
 
@@ -873,8 +1156,9 @@ class LeaderboardPage(NeonPage):
         difficulty = self.selected_diff.get()
         last_result = self.app.last_run_result
         
-        # Get strict-typed entries
-        entries = self.app.leaderboard_service.get_top_scores(difficulty)
+        # Get strict-typed entries via new interface
+        # Returns List[Tuple[str, int, float, str]] -> (name, wpm, time, diff)
+        entries = self.app.leaderboard_service.get_top_10(difficulty)
 
         header = tk.Frame(self.table_container, bg=Theme.PANEL)
         header.pack(fill="x")
@@ -895,49 +1179,56 @@ class LeaderboardPage(NeonPage):
                 padx=8,
             ).grid(row=0, column=i, sticky="w", pady=10)
 
-        body = tk.Frame(self.table_container, bg=Theme.PANEL2)
-        body.pack(fill="both", expand=True)
+        # Remove unused body frame that was causing shift
+        # body = tk.Frame(self.table_container, bg=Theme.PANEL2)
+        # body.pack(fill="both", expand=True)
 
-        for idx, entry in enumerate(entries, start=1):
+        for i, row_data in enumerate(entries):
+            # Unpack tuple from get_top_10
+            name, wpm, time_val, _ = row_data
+            
+            # Check if this row is me (last result match)
             is_me = False
-            # Check if this entry corresponds to our last run
             if last_result:
-                # Basic check on equality of values
-                if (entry.player_name == last_result.player_name and
-                    entry.difficulty == last_result.difficulty and
-                    entry.wpm == last_result.wpm and
-                    abs(entry.time_seconds - last_result.time_seconds) < 0.01):
+                if (name == last_result.player_name and 
+                    wpm == last_result.wpm and 
+                    abs(time_val - last_result.time_seconds) < 0.1):
                     is_me = True
 
-            bg = Theme.PANEL if is_me else Theme.PANEL2
-            fg = Theme.NEON_PINK if is_me else Theme.TEXT
+            bg_color = Theme.PANEL if i % 2 == 0 else Theme.PANEL2
+            fg_color = Theme.TEXT
+            
+            if is_me:
+                bg_color = Theme.PANEL
+                fg_color = Theme.NEON_PINK
+            
+            row = tk.Frame(self.table_container, bg=bg_color)
+            if is_me:
+                row.configure(highlightthickness=1, highlightbackground=Theme.NEON_PINK)
+                
+            row.pack(fill="x", pady=2)
 
-            row = tk.Frame(
-                body,
-                bg=bg,
-                highlightthickness=2 if is_me else 0,
-                highlightbackground=Theme.NEON_PINK if is_me else bg,
-            )
-            row.pack(fill="x", padx=10, pady=6)
-
+            # Columns depending on difficulty
             if difficulty == "Time-Trial":
-                 values = [f"#{idx}", entry.player_name, str(entry.wpm)]
-                 widths = [6, 20, 10]
+                 vals = [f"{i+1}.", name, str(wpm)]
             else:
-                 values = [f"#{idx}", entry.player_name, str(entry.wpm), f"{entry.time_seconds:.2f}s"]
-                 widths = [6, 16, 8, 10]
-
-            for i, (val, w) in enumerate(zip(values, widths)):
+                 vals = [f"{i+1}.", name, str(wpm), f"{time_val:.2f}s"]
+            
+            for j, (val) in enumerate(vals):
+                # Match width from cols def
+                w = cols[j][1]
+                
+                align = "w"
                 tk.Label(
-                    row,
+                    row, 
                     text=val,
-                    bg=bg,
-                    fg=fg,
+                    bg=bg_color,
+                    fg=fg_color,
                     font=Theme.font(11, "bold" if is_me else "normal"),
                     width=w,
-                    anchor="w",
-                    padx=8,
-                ).grid(row=0, column=i, sticky="w", pady=6)
+                    anchor=align,
+                    padx=8
+                ).grid(row=0, column=j, sticky="w", pady=6)
 
         # Update footer note
         color_name = "PINK" if difficulty == "Time-Trial" else "CYAN"

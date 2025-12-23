@@ -81,14 +81,60 @@ class LeaderboardService:
     ]
 
 
-    def add_entry(self, entry: LeaderboardEntry) -> None:
+    def insert_player(self, username: str, difficulty: str, score: int, time_seconds: float = 0.0) -> None:
         """
-        Add a new entry to the leaderboard.
-        If an entry exists for the same player and difficulty, keep the best one.
-        (Higher WPM is better; if WPM equal, Lower Time is better).
+        Inserts a player entry into the leaderboard.
+        
+        Interface designed for C++ backend integration.
         
         Args:
-            entry (LeaderboardEntry): The entry object to add.
+            username (str): Player's display name.
+            difficulty (str): Game difficulty level.
+            score (int): Score (WPM).
+            time_seconds (float, optional): Elapsed time. Defaults to 0.0 for C++ compat.
+            
+        Note:
+            Function overloaded to accept explicit score. 
+        """
+        entry = LeaderboardEntry(
+            player_name=username,
+            difficulty=difficulty,
+            wpm=score,
+            time_seconds=time_seconds
+        )
+        self.add_entry(entry)
+
+    def get_top_10(self, difficulty: Optional[str] = None) -> List[Tuple[str, int, float, str]]:
+        """
+        Retrieves the top 10 players.
+        
+        Args:
+            difficulty (Optional[str]): If provided, filters by difficulty. 
+                                        If None, returns global top 10.
+                                        
+        Returns:
+             List of (Username, Score, Time, Difficulty) tuples.
+        """
+        if difficulty:
+            filtered = [e for e in self._entries if e.difficulty == difficulty]
+        else:
+            filtered = self._entries
+            
+        # Sort by WPM descending
+        sorted_rows = sorted(filtered, key=lambda e: -e.wpm)
+        top_10 = sorted_rows[:10]
+        
+        # Return simple tuples for C++ interface compatibility
+        return [(e.player_name, e.wpm, e.time_seconds, e.difficulty) for e in top_10]
+
+    # -------------------------------------------------------------------------
+    # Legacy / Helper Methods (Internal Logic)
+    # -------------------------------------------------------------------------
+
+    def add_entry(self, entry: LeaderboardEntry) -> None:
+        """
+        Internal: Add a new entry to the leaderboard.
+        If an entry exists for the same player and difficulty, keep the best one.
         """
         # separate entries into "same player+diff" vs "others"
         existing_index = -1
@@ -101,10 +147,10 @@ class LeaderboardService:
             existing = self._entries[existing_index]
             # Check if new entry is better
             is_better_wpm = entry.wpm > existing.wpm
-            is_equal_wpm_better_time = (entry.wpm == existing.wpm) and (entry.time_seconds < existing.time_seconds)
+            # If wpm is equal, we can't judge time easily if new entry time is 0.0
+            # We assume higher WPM is strictly better for this simplified interface.
             
-            if is_better_wpm or is_equal_wpm_better_time:
-                # Replace
+            if is_better_wpm:
                 self._entries[existing_index] = entry
         else:
             # New record
@@ -112,26 +158,9 @@ class LeaderboardService:
 
         self._sort_and_trim()
 
-    def get_top_scores(self, difficulty: str, limit: int = 10) -> List[LeaderboardEntry]:
-        """
-        Retrieve top scores for a specific difficulty.
-        
-        Args:
-            difficulty (str): The difficulty category.
-            limit (int): Number of top scores to return.
-            
-        Returns:
-            List[LeaderboardEntry]: The sorted list of top entries.
-        """
-        filtered = [e for e in self._entries if e.difficulty == difficulty]
-        # Sort is maintained by _sort_and_trim, so we just slice
-        return filtered[:limit]
-
     def _sort_and_trim(self) -> None:
         """
-        Internal method to maintain sort order and cap size.
-        Sorts by WPM (descending), then Time (ascending).
+        Internal: Sort by WPM (descending).
         """
-        self._entries.sort(key=lambda e: (-e.wpm, e.time_seconds))
-        # Keep a global cap to avoid infinite growth
+        self._entries.sort(key=lambda e: -e.wpm)
         self._entries = self._entries[:200]
