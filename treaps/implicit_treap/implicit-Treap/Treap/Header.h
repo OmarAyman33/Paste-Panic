@@ -57,7 +57,6 @@ private:
 		delete node;         
 	}
 	
-	
 	T search(nodePtr root, int k) {
 		if (!root || k > (root->size) - 1 || k < 0) {
 			throw std::out_of_range("index out of range");
@@ -114,8 +113,6 @@ private:
 
 	}
 
-
-
 public:
 
 	ImplicitTreap() : root(nullptr) {}
@@ -163,7 +160,6 @@ public:
 		merge(L, L, N);
 		merge(root, L, R);
 	}
-
 	
 	void erase(long long pos) {
 		if (pos < 0 || pos >= size()) {
@@ -212,7 +208,29 @@ public:
 		return result;
 	}
 
-	T search(int k) {
+	Treap cut(long long ipos, long long fpos){
+
+		if (ipos < 0 || fpos > size() || ipos >= fpos) {
+			std::cerr << "Invalid range for copy";
+			return Treap();
+		}
+		nodePtr first = nullptr, second = nullptr, third = nullptr;
+		split(root, ipos, first, second);
+		split(second, fpos - ipos, second, third);
+
+		Treap result;
+		result.root = second;
+
+		merge(root, first, third);
+
+		return result;
+	}
+
+	void delete_range(long long ipos, long long fpos){
+		Treap var = cut(ipos, fpos);
+	}
+	
+	T search(long long k) {
 		if (!root) {
 			throw std::out_of_range("empty Treap");
 		}
