@@ -2,6 +2,8 @@
 #include "treap.h"
 #include "Leaderboard_playerID.h"
 #include "Leaderboard_time.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 class leaderboard_treap {
 public:
@@ -41,6 +43,19 @@ public:
     }
 
     Leaderboard_time* getTop10() {
-        return time_Leaderboard.getTopK(10);
+        return time_Leaderboard.getTopK(11);
     }
 };
+
+
+PYBIND11_MODULE(leaderboard_treap, m) {
+     // defining the leaderboard time class variables as the getTop10 function returns a pointer to an array of Leaderboard_time objects
+	pybind11::class_<Leaderboard_time>(m, "LeaderboardTime")
+		.def_readwrite("time", &Leaderboard_time::time)
+		.def_readwrite("userID", &Leaderboard_time::userID);
+
+	pybind11::class_<leaderboard_treap>(m, "LeaderboardTreap")
+		.def(pybind11::init<>())
+		.def("registerTime", &leaderboard_treap::registerTime)
+		.def("getTop10", &leaderboard_treap::getTop10);
+}		
