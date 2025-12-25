@@ -2,7 +2,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <stdexcept>
-
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 template<typename T>
 class ImplicitTreap {
@@ -147,6 +148,10 @@ public:
 		merge(root, L, R);
 	}
 
+	void insert_last(T val) {
+		insert(size()-1, val);
+	}
+
 	void paste(long long pos, ImplicitTreap& t) {
 		if (pos < 0 || pos > size()) {
 			std::cerr << "Insert position out of range";
@@ -227,14 +232,24 @@ public:
 	}
 
 	void delete_range(long long ipos, long long fpos){
-		Treap var = cut(ipos, fpos);
+		ImplicitTreap var = cut(ipos, fpos);
 	}
-	
+
 	T search(long long k) {
 		if (!root) {
 			throw std::out_of_range("empty Treap");
 		}
 		return search(root, k);
+	}
+
+	int check_equal_so_far(const string &other , bool& complete) {
+		int n = root.size();
+		int other_len = other.length();
+		for (int i = 0; i < n; i++) {
+			if (search(i) != other[i]) return i;
+		}
+		complete = (n == other_len);
+    	return -1;
 	}
 
 	Treap& operator=(const Treap& other) {
@@ -244,5 +259,34 @@ public:
 		}
 		return *this;
 	}
+
+	string to_string() {
+		string result = "";
+		for (long long i = 0; i < size(); i++) {
+			result += search(i);
+		}
+		return result;
+	}
+
 };
 
+PYBIND11_MODULE(implicit_treap, m) {
+	pybind11::class_<ImplicitTreap<char>>(m, "ImplicitTreapchar")
+		.def(pybind11::init<>())
+		.def("insert", &ImplicitTreap<char>::insert)
+		.def("erase", &ImplicitTreap<char>::erase)
+		.def("slit", &ImplicitTreap<char>::slit)
+		.def("copy", &ImplicitTreap<char>::copy)
+		.def("cut", &ImplicitTreap<char>::cut)
+		.def("size", &ImplicitTreap<char>::size)
+		.def("search", &ImplicitTreap<char>::search)
+		.def("print", &ImplicitTreap<char>::print)
+		.def("insert_last", &ImplicitTreap<char>::insert_last)
+		.def("paste", &ImplicitTreap<char>::paste)
+		.def("check_equal_so_far", [](ImplicitTreap<char>& self, const std::string& other) {
+            bool complete = false;
+            int first_error = self.check_equal_so_far(other, complete);
+            return pybind11::make_tuple(first_error, complete);
+        })
+		.def("to_string", &ImplicitTreap<char>::to_string);
+}
