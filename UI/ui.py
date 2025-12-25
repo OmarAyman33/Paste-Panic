@@ -3,7 +3,6 @@ from tkinter import ttk
 from typing import List, Dict, Tuple, Optional, Any
 import re
 import pyglet 
-import implicit_treap
 
 from engine import GameEngine, GameResult
 from leaderboard import LeaderboardService, LeaderboardEntry
@@ -632,34 +631,19 @@ class GamePage(NeonPage):
         # Trigger correctness check
         self._check_correctness(new_text)
 
-
-    #OK so imma break tradion and personal beliefs and actually explain this function
-    #I basically put the target and the current text ito variables and call the impilcit treap function we made to compare the string to thetreap content
-    #after returning where the error is i set it up to turn every letter red if it is after the error
-    #I am mainly doing this to keep in mind what i change as i go though the code as i have the attention span of a butterfly
     def _check_correctness(self, curr_text: str) -> None:
-        #what do
-        target_short = self.app.engine._normalize(self.app.engine.target_text)
-        typed_short = self.app.engine._normalize(curr_text)
-
-        first_error_pos, complete = self.WriteTreap.check_equal_so_far(target_short)
+        _, complete, char_correctness = self.app.engine.submit_text(curr_text)
+        self._apply_highlighting(char_correctness, len(self.app.engine.target_text))
         
-        char_correctness = []
-
-        for i in range(len(typed_short)):
-            if first_error_pos == -1:
-                char_correctness.append(True)
-            elif i < first_error_pos:
-                char_correctness.append(True)
-            else:
-                char_correctness.append(False)
-        
-        self._apply_highlighting(char_correctness, len(target_short))
-
         if complete and not self._completion_processed:
              self._handle_completion()
+        else:
+             target_short = self.app.engine._normalize(self.app.engine.target_text)
+             typed_short = self.app.engine._normalize(curr_text)
+             # Basic check to stop timer if it's completely wrong or something? 
+             # Existing logic didn't do much here except 'pass'
+             pass
 
-    #i am not sure of this somthing feels off primarily that we are dealing with two different things being the treap and the text sulmontainously i know thats what we want but it feels wrong
     def _on_key(self, event: tk.Event) -> Optional[str]:
         # Allow navigation keys and shortcuts to pass through (handled by hooks or default)
         if event.keysym in ("Left", "Right", "Up", "Down", "Home", "End", "Return", "Escape"):
@@ -675,20 +659,16 @@ class GamePage(NeonPage):
             start, end = self._get_selection_indices()
             if start != -1:
                 current_text, cursor = TextEditor.range_delete(current_text, start, end)
-                self.WriteTreap.delete_range(start, end)
                 # After delete, cursor is at start
             
             new_text, new_cursor = TextEditor.type_char(current_text, cursor, event.char)
-            self.WriteTreap.insert(new_cursor, event.char) 
             self._update_text_and_cursor(new_text, new_cursor)
             
             self._start_timer_if_needed()
             return "break" # Stop default insertion
         
         return None
-    
-    # special note: the selection IS already exclusive so when using any implicit treaps use the end selection normally
-    # our treaps are made with exclusive end in mind so no need to adjust for that
+
     def _handle_backspace(self, event: tk.Event) -> Optional[str]:
         current_text = self.text.get("1.0", "end-1c")
         start, end = self._get_selection_indices()
@@ -696,13 +676,11 @@ class GamePage(NeonPage):
         if start != -1:
             # Selection delete
             new_text, new_cursor = TextEditor.range_delete(current_text, start, end)
-            self.WriteTreap.delete_range(start, end)
         else:
             # Single char delete
             cursor = self._get_cursor_index()
             if cursor > 0:
                 new_text, new_cursor = TextEditor.range_delete(current_text, cursor - 1, cursor)
-                self.WriteTreap.erase(cursor - 1);
             else:
                 return "break"
                 
@@ -710,8 +688,6 @@ class GamePage(NeonPage):
         self._start_timer_if_needed()
         return "break"
 
-    #clairification the blinking cursor position is the char after it so if the word is hel|lo the cursor index is 3
-    #by deleting whats after the cursor we mean deleting the l in hello or rather the position itself
     def _handle_delete(self, event: tk.Event) -> Optional[str]:
         current_text = self.text.get("1.0", "end-1c")
         start, end = self._get_selection_indices()
@@ -719,13 +695,11 @@ class GamePage(NeonPage):
         if start != -1:
             # Selection delete
             new_text, new_cursor = TextEditor.range_delete(current_text, start, end)
-            self.WriteTreap.delete_range(start, end)
         else:
             # Single char delete forward
             cursor = self._get_cursor_index()
             if cursor < len(current_text):
                 new_text, new_cursor = TextEditor.range_delete(current_text, cursor, cursor + 1)
-                self.WriteTreap.erase(cursor);
             else:
                 return "break"
                 
@@ -733,7 +707,7 @@ class GamePage(NeonPage):
         self._start_timer_if_needed()
         return "break"
 
-    def _apply_highlighting(self, char_correctness, target_len: int) -> None:
+    def _apply_highlighting(self, char_correctness: List[bool], target_len: int) -> None:
         self.text.tag_remove("error", "1.0", "end")
         self.text.tag_remove("correct", "1.0", "end")
         
@@ -748,7 +722,6 @@ class GamePage(NeonPage):
             else:
                 self.text.tag_add("error", index_start, index_end)
 
-    #initialize the treap here and delete previous instances before starting a new run
     def on_show(self) -> None:
         name = self.app.engine.player_name
         diff = self.app.engine.difficulty
@@ -762,9 +735,6 @@ class GamePage(NeonPage):
         self.text.delete("1.0", "end")
         self.text.edit_reset()
         self.text.focus_set()
-
-        
-        self.WriteTreap = implicit_treap() 
 
         self._reset_timer_label()
         self.status_label.configure(text="TYPE TO START")
@@ -862,29 +832,40 @@ class GamePage(NeonPage):
     # -------------------------------------------------------------------------
 
     def _hook_copy(self, _event: tk.Event) -> Optional[str]:
-
+        """
+        Intercepts Copy event.
+        Extracts selection via TextEditor and pushes to system clipboard.
+        """
         current_text = self.text.get("1.0", "end-1c")
         start, end = self._get_selection_indices()
-   
-
+        
         if start != -1:
-            self.clipboard_content = self.WriteTreap.copy(start, end)  
+            # Delegate logic to TextEditor (stateless)
+            content = TextEditor.copy(current_text, start, end)
             
+            # Interaction with System Clipboard
+            self.clipboard_clear()
+            self.clipboard_append(content)
+            self.update() # Force update to ensure clipboard sync
             
         return "break" # Prevent default Tkinter handling
 
     def _hook_cut(self, _event: tk.Event) -> Optional[str]:
-   
+        """
+        Intercepts Cut event.
+        Performs copy-delete via TextEditor and updates UI state.
+        """
         current_text = self.text.get("1.0", "end-1c") # getting text via tkinter
         start, end = self._get_selection_indices()
-
-
+        
         if start != -1:
             # Atomic cut operation via TextEditor
+            new_text, new_cursor, clipboard_content = TextEditor.cut(current_text, start, end)
             
-            self.clipboard_content = self.WriteTreap.cut(start, end) 
-
-            new_text, new_cursor, _ = TextEditor.range_delete(current_text, start, end)
+            # Update Clipboard
+            self.clipboard_clear()
+            self.clipboard_append(clipboard_content)
+            self.update() # Force sync
             
             # Update Editor State
             self._update_text_and_cursor(new_text, new_cursor)
@@ -898,12 +879,15 @@ class GamePage(NeonPage):
         Retrieves system clipboard, normalizes, and injects via TextEditor.
         """
         try:
-            content = self.clipboard_content.to_string() 
+            content = self.clipboard_get()
         except tk.TclError:
             return "break" # Clipboard empty or unavailable
             
         if not content:
             return "break"
+
+        # Normalize line endings to prevent cursor drift (Windows \r\n vs Tkinter \n)
+        content = content.replace("\r\n", "\n")
             
         current_text = self.text.get("1.0", "end-1c")
         cursor = self._get_cursor_index()
@@ -912,11 +896,9 @@ class GamePage(NeonPage):
         start, end = self._get_selection_indices()
         if start != -1:
              current_text, cursor = TextEditor.range_delete(current_text, start, end)
-             self.WriteTreap.delete_range(start, end)
 
         # Insert content
         new_text, new_cursor = TextEditor.paste(current_text, cursor, content)
-        self.WriteTreap.paste(cursor, self.clipboard_content)
         
         self._update_text_and_cursor(new_text, new_cursor)
         self._start_timer_if_needed()
@@ -1127,7 +1109,6 @@ class LeaderboardPage(NeonPage):
             highlightthickness=2,
             highlightbackground=Theme.NEON_CYAN,
         )
-
         self.table_frame.pack(fill="both", expand=True)
 
         # Inner frame for the actual table content, allowing for padding within the border
@@ -1178,7 +1159,7 @@ class LeaderboardPage(NeonPage):
         # Get strict-typed entries via new interface
         # Returns List[Tuple[str, int, float, str]] -> (name, wpm, time, diff)
         entries = self.app.leaderboard_service.get_top_10(difficulty)
-
+        print(entries)
         header = tk.Frame(self.table_container, bg=Theme.PANEL)
         header.pack(fill="x")
 
@@ -1249,6 +1230,7 @@ class LeaderboardPage(NeonPage):
                     padx=8
                 ).grid(row=0, column=j, sticky="w", pady=6)
 
+        # Update footer note
         color_name = "PINK" if difficulty == "Time-Trial" else "CYAN"
         
         if last_result is None:

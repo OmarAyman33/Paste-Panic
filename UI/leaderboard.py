@@ -24,62 +24,66 @@ class LeaderboardService:
 
     def __init__(self) -> None:
         """Initialize with dummy data."""
-        self._entries: List[LeaderboardEntry] = [
-        LeaderboardEntry("NOVA", "Hard",    112, 28.42),
-        LeaderboardEntry("BYTE", "Medium",   96, 31.10),
-        LeaderboardEntry("Z3RO", "Hard",    101, 33.55),
-        LeaderboardEntry("LUNA", "Easy",     72, 22.05),
-        LeaderboardEntry("KAI",  "Medium",   89, 34.90),
+        # initialization of the treaps for each difficulty/category
+        self.leaderboard_easy = leaderboard_treap.LeaderboardTreap()
+        self.leaderboard_medium = leaderboard_treap.LeaderboardTreap()
+        self.leaderboard_hard = leaderboard_treap.LeaderboardTreap()
+        self.leaderboard_time_trial = leaderboard_treap.LeaderboardTreap()
+        
+        # initialization of the list for the leaderboard
+        self.add_entry(LeaderboardEntry("NOVA", "Hard",    112, 28.42))
+        self.add_entry(LeaderboardEntry("BYTE", "Medium",   96, 31.10))
+        self.add_entry(LeaderboardEntry("Z3RO", "Hard",    101, 33.55))
+        self.add_entry(LeaderboardEntry("LUNA", "Easy",     72, 22.05))
+        self.add_entry(LeaderboardEntry("KAI",  "Medium",   89, 34.90))
 
-        LeaderboardEntry("AXIS", "Hard",    118, 27.80),
-        LeaderboardEntry("ECHO", "Medium",   92, 32.45),
-        LeaderboardEntry("VOLT", "Hard",    109, 29.60),
-        LeaderboardEntry("MIRA", "Easy",     68, 23.10),
-        LeaderboardEntry("RYU",  "Medium",   85, 36.20),
+        self.add_entry(LeaderboardEntry("AXIS", "Hard",    118, 27.80))
+        self.add_entry(LeaderboardEntry("ECHO", "Medium",   92, 32.45))
+        self.add_entry(LeaderboardEntry("VOLT", "Hard",    109, 29.60))
+        self.add_entry(LeaderboardEntry("MIRA", "Easy",     68, 23.10))
+        self.add_entry(LeaderboardEntry("RYU",  "Medium",   85, 36.20))
 
-        LeaderboardEntry("CYRA", "Hard",    121, 26.95),
-        LeaderboardEntry("NEON", "Medium",   99, 30.75),
-        LeaderboardEntry("ORION","Hard",    114, 28.90),
-        LeaderboardEntry("SAGE", "Easy",     74, 21.80),
-        LeaderboardEntry("PIXEL","Medium",   91, 33.40),
+        self.add_entry(LeaderboardEntry("CYRA", "Hard",    121, 26.95))
+        self.add_entry(LeaderboardEntry("NEON", "Medium",   99, 30.75))
+        self.add_entry(LeaderboardEntry("ORION","Hard",    114, 28.90))
+        self.add_entry(LeaderboardEntry("SAGE", "Easy",     74, 21.80))
+        self.add_entry(LeaderboardEntry("PIXEL","Medium",   91, 33.40))
 
-        LeaderboardEntry("QUARK","Hard",    125, 26.10),
-        LeaderboardEntry("IRIS", "Medium",   88, 35.10),
-        LeaderboardEntry("NEXUS","Hard",    117, 27.65),
-        LeaderboardEntry("ARIA", "Easy",     70, 22.90),
-        LeaderboardEntry("FLUX", "Medium",   95, 31.85),
+        self.add_entry(LeaderboardEntry("QUARK","Hard",    125, 26.10))
+        self.add_entry(LeaderboardEntry("IRIS", "Medium",   88, 35.10))
+        self.add_entry(LeaderboardEntry("NEXUS","Hard",    117, 27.65))
+        self.add_entry(LeaderboardEntry("ARIA", "Easy",     70, 22.90))
+        self.add_entry(LeaderboardEntry("FLUX", "Medium",   95, 31.85))
 
-        LeaderboardEntry("OMEGA","Hard",    130, 25.40),
-        LeaderboardEntry("EMBER","Medium",   90, 34.25),
-        LeaderboardEntry("ATLAS","Hard",    122, 26.70),
-        LeaderboardEntry("ELIO", "Easy",     66, 23.75),
-        LeaderboardEntry("TRACE","Medium",   97, 30.95),
+        self.add_entry(LeaderboardEntry("OMEGA","Hard",    130, 25.40))
+        self.add_entry(LeaderboardEntry("EMBER","Medium",   90, 34.25))
+        self.add_entry(LeaderboardEntry("ATLAS","Hard",    122, 26.70))
+        self.add_entry(LeaderboardEntry("ELIO", "Easy",     66, 23.75))
+        self.add_entry(LeaderboardEntry("TRACE","Medium",   97, 30.95))
 
-        LeaderboardEntry("PULSE","Hard",    115, 28.30),
-        LeaderboardEntry("LYNX", "Medium",   93, 32.80),
-        LeaderboardEntry("ROOK", "Hard",    108, 29.95),
-        LeaderboardEntry("NIA",  "Easy",     69, 22.60),
-        LeaderboardEntry("SPARK","Medium",   87, 35.60),
+        self.add_entry(LeaderboardEntry("PULSE","Hard",    115, 28.30))
+        self.add_entry(LeaderboardEntry("LYNX", "Medium",   93, 32.80))
+        self.add_entry(LeaderboardEntry("ROOK", "Hard",    108, 29.95))
+        self.add_entry(LeaderboardEntry("NIA",  "Easy",     69, 22.60))
+        self.add_entry(LeaderboardEntry("SPARK","Medium",   87, 35.60))
 
-        LeaderboardEntry("TITAN","Hard",    128, 25.85),
-        LeaderboardEntry("KILO", "Medium",   94, 32.10),
-        LeaderboardEntry("ZEN",  "Hard",    110, 29.20),
-        LeaderboardEntry("IVY",  "Easy",     73, 21.95),
-        LeaderboardEntry("CORE", "Medium",   98, 30.40),
+        self.add_entry(LeaderboardEntry("TITAN","Hard",    128, 25.85))
+        self.add_entry(LeaderboardEntry("KILO", "Medium",   94, 32.10))
+        self.add_entry(LeaderboardEntry("ZEN",  "Hard",    110, 29.20))
+        self.add_entry(LeaderboardEntry("IVY",  "Easy",     73, 21.95))
+        self.add_entry(LeaderboardEntry("CORE", "Medium",   98, 30.40))
 
-        LeaderboardEntry("RIFT", "Hard",    119, 27.25),
-        LeaderboardEntry("BLAZE","Medium",   91, 33.90),
-        LeaderboardEntry("NODE", "Hard",    113, 28.75),
-        LeaderboardEntry("UMA",  "Easy",     67, 23.30),
-        LeaderboardEntry("SYNC", "Medium",   86, 36.00),
+        self.add_entry(LeaderboardEntry("RIFT", "Hard",    119, 27.25))
+        self.add_entry(LeaderboardEntry("BLAZE","Medium",   91, 33.90))
+        self.add_entry(LeaderboardEntry("NODE", "Hard",    113, 28.75))
+        self.add_entry(LeaderboardEntry("UMA",  "Easy",     67, 23.30))
+        self.add_entry(LeaderboardEntry("SYNC", "Medium",   86, 36.00))
 
-        # Time-Trial Dummy Data
-        LeaderboardEntry("FLASH", "Time-Trial", 140, 30.00),
-        LeaderboardEntry("SONIC", "Time-Trial", 135, 30.00),
-        LeaderboardEntry("TURBO", "Time-Trial", 128, 30.00),
-        LeaderboardEntry("BLUR",  "Time-Trial", 120, 30.00),
-        LeaderboardEntry("DASH",  "Time-Trial", 115, 30.00),
-    ]
+        self.add_entry(LeaderboardEntry("FLASH", "Time-Trial", 140, 30.00))
+        self.add_entry(LeaderboardEntry("SONIC", "Time-Trial", 135, 30.00))
+        self.add_entry(LeaderboardEntry("TURBO", "Time-Trial", 128, 30.00))
+        self.add_entry(LeaderboardEntry("BLUR",  "Time-Trial", 120, 30.00))
+        self.add_entry(LeaderboardEntry("DASH",  "Time-Trial", 115, 30.00))
 
 
     def insert_player(self, username: str, difficulty: str, score: int, time_seconds: float = 0.0) -> None:
@@ -116,17 +120,23 @@ class LeaderboardService:
         Returns:
              List of (Username, Score, Time, Difficulty) tuples.
         """
-        if difficulty:
-            filtered = [e for e in self._entries if e.difficulty == difficulty]
-        else:
-            filtered = self._entries
+        match difficulty:
+            case "Easy":
+                top10 = self.leaderboard_easy.getTop10()
+            case "Medium":
+                top10 = self.leaderboard_medium.getTop10()
+            case "Hard":
+                top10 = self.leaderboard_hard.getTop10()
+            case "Time-Trial":
+                top10 = self.leaderboard_time_trial.getTop10()
+            case _:
+                raise ValueError(f"Invalid difficulty: {difficulty}")
+        list = []
+        for entry in top10:
+            list.append((entry.playerID, entry.wpm, entry.time, difficulty))
             
-        # Sort by WPM descending
-        sorted_rows = sorted(filtered, key=lambda e: -e.wpm)
-        top_10 = sorted_rows[:10]
-        
-        # Return simple tuples for C++ interface compatibility
-        return [(e.player_name, e.wpm, e.time_seconds, e.difficulty) for e in top_10]
+        return list
+            
 
     # -------------------------------------------------------------------------
     # Legacy / Helper Methods (Internal Logic)
@@ -137,31 +147,43 @@ class LeaderboardService:
         Internal: Add a new entry to the leaderboard.
         If an entry exists for the same player and difficulty, keep the best one.
         """
-        # separate entries into "same player+diff" vs "others"
-        existing_index = -1
-        for i, e in enumerate(self._entries):
-            if e.player_name == entry.player_name and e.difficulty == entry.difficulty:
-                existing_index = i
-                break
+        # # separate entries into "same player+diff" vs "others"
+        # existing_index = -1
+        # for i, e in enumerate(self._entries):
+        #     if e.player_name == entry.player_name and e.difficulty == entry.difficulty:
+        #         existing_index = i
+        #         break
         
-        if existing_index != -1:
-            existing = self._entries[existing_index]
-            # Check if new entry is better
-            is_better_wpm = entry.wpm > existing.wpm
-            # If wpm is equal, we can't judge time easily if new entry time is 0.0
-            # We assume higher WPM is strictly better for this simplified interface.
+        # if existing_index != -1:
+        #     existing = self._entries[existing_index]
+        #     # Check if new entry is better
+        #     is_better_wpm = entry.wpm > existing.wpm
+        #     # If wpm is equal, we can't judge time easily if new entry time is 0.0
+        #     # We assume higher WPM is strictly better for this simplified interface.
             
-            if is_better_wpm:
-                self._entries[existing_index] = entry
-        else:
-            # New record
-            self._entries.append(entry)
+        #     if is_better_wpm:
+        #         self._entries[existing_index] = entry
+        # else:
+        #     # New record
+        #     self._entries.append(entry)
 
-        self._sort_and_trim()
+        # self._sort_and_trim()
+        match entry.difficulty:
+            case "Easy":
+                self.leaderboard_easy.registerTime(entry.player_name, entry.wpm, entry.time_seconds)
+            case "Medium":
+                self.leaderboard_medium.registerTime(entry.player_name, entry.wpm, entry.time_seconds)
+            case "Hard":
+                self.leaderboard_hard.registerTime(entry.player_name, entry.wpm, entry.time_seconds)
+            case "Time-Trial":
+                self.leaderboard_time_trial.registerTime(entry.player_name, entry.wpm, entry.time_seconds)
+            case _:
+                raise ValueError(f"Invalid difficulty: {entry.difficulty}")
+        
 
-    def _sort_and_trim(self) -> None:
-        """
-        Internal: Sort by WPM (descending).
-        """
-        self._entries.sort(key=lambda e: -e.wpm)
-        self._entries = self._entries[:200]
+    # def _sort_and_trim(self) -> None:
+    #     """
+    #     Internal: Sort by WPM (descending).
+    #     """
+    #     self._entries.sort(key=lambda e: -e.wpm)
+    #     self._entries = self._entries[:200]
