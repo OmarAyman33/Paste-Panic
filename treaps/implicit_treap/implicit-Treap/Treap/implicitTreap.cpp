@@ -193,17 +193,17 @@ public:
 
 	//ipos is initial position in the selected region included.
 	//fpos is final position in the selected region excluded (yes this makes it easier for me)
-	Treap copy(long long ipos, long long fpos){
+	ImplicitTreap copy(long long ipos, long long fpos){
 
 		if (ipos < 0 || fpos > size() || ipos >= fpos) {
 			std::cerr << "Invalid range for copy";
-			return Treap();
+			return ImplicitTreap();
 		}
 		nodePtr first = nullptr, second = nullptr, third = nullptr;
 		split(root, ipos, first, second);
 		split(second, fpos - ipos, second, third);
 
-		Treap result;
+		ImplicitTreap result;
 		result.root = copySubtree(second);
 
 		nodePtr temp = nullptr;
@@ -213,17 +213,17 @@ public:
 		return result;
 	}
 
-	Treap cut(long long ipos, long long fpos){
+	ImplicitTreap cut(long long ipos, long long fpos){
 
 		if (ipos < 0 || fpos > size() || ipos >= fpos) {
 			std::cerr << "Invalid range for copy";
-			return Treap();
+			return ImplicitTreap();
 		}
 		nodePtr first = nullptr, second = nullptr, third = nullptr;
 		split(root, ipos, first, second);
 		split(second, fpos - ipos, second, third);
 
-		Treap result;
+		ImplicitTreap result;
 		result.root = second;
 
 		merge(root, first, third);
@@ -252,7 +252,7 @@ public:
     	return -1;
 	}
 
-	Treap& operator=(const Treap& other) {
+	ImplicitTreap& operator=(const ImplicitTreap& other) {
 		if (this != &other) {
 			clear(root);
 			root = copySubtree(other.root);

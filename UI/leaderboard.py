@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 import time
 from typing import List, Dict, Tuple, Optional
+import leaderboard_treap
 
 @dataclass(frozen=True)
 class LeaderboardEntry:

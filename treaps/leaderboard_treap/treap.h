@@ -53,6 +53,7 @@ public:
     dataType getK(int k);
     dataType* getTopK(int k);
     void updateNode(dataType oldNode, dataType newNode);
+    int size();
 
     // FIX 2: Simplified syntax. Removed template header and scope qualifier.
     // Also, this calls the private merge(Node*, Node*).
@@ -382,4 +383,9 @@ template<class dataType>
 void treap<dataType>::updateNode(dataType oldNode, dataType newNode) {
     erase(oldNode);
     insert(newNode);
+}
+
+template<class dataType>
+int treap<dataType>::size() {
+    return root->subtreeSize;
 }

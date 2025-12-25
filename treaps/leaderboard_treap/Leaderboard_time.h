@@ -12,7 +12,7 @@ public:
 
     // Constructors
     Leaderboard_time(float t, string id) : time(t), player_id(id) {}
-
+    Leaderboard_time() : time(0), player_id("") {}
     // Comparison Operator Overloads 
 
     // Equality: Both time and ID must be the same

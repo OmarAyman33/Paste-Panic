@@ -11,6 +11,7 @@ public:
 
     // Constructors
     Leaderboard_playerID(string id, float t) : player_id(id), time(t) {}
+    Leaderboard_playerID() : player_id(""), time(0) {}
 
     // --- Comparison Operator Overloads ---
 
