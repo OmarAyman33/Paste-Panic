@@ -1,4 +1,5 @@
 from typing import Tuple, Optional
+import implicit_treap
 
 class TextEditor:
     """
@@ -126,3 +127,4 @@ class TextEditor:
             
         # Delegate to type_char which handles insertion logic
         return TextEditor.type_char(text, cursor_index, clipboard_content)
+

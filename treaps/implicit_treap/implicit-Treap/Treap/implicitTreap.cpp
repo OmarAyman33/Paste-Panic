@@ -152,7 +152,7 @@ public:
 	}
 
 	void insert_last(T val) {
-		insert(size()-1, val);
+		insert(size(), val);
 	}
 
 	void paste(long long pos, ImplicitTreap& t) {
@@ -182,17 +182,17 @@ public:
 	}
 
 	//erase a region
-	void slit(long long ipos, long long fpos) {
-		if (ipos < 0 || fpos > size() || ipos >= fpos) {
-			std::cerr << "Invalid range for erase";
-			return;
-		}
-		nodePtr L, R, mid;
-		split(root, ipos, L, R);       // the right treap starts with the position that i want to erase
-		split(R, fpos-ipos, mid, R);
-		clear(mid);
-		merge(root, L, R);
-	}
+	// void slit(long long ipos, long long fpos) {
+	// 	if (ipos < 0 || fpos > size() || ipos >= fpos) {
+	// 		std::cerr << "Invalid range for erase";
+	// 		return;
+	// 	}
+	// 	nodePtr L, R, mid;
+	// 	split(root, ipos, L, R);       // the right treap starts with the position that i want to erase
+	// 	split(R, fpos-ipos, mid, R);
+	// 	clear(mid);
+	// 	merge(root, L, R);
+	// }
 
 	//ipos is initial position in the selected region included.
 	//fpos is final position in the selected region excluded (yes this makes it easier for me)
@@ -278,11 +278,11 @@ PYBIND11_MODULE(implicit_treap, m) {
 		.def(pybind11::init<>())
 		.def("insert", &ImplicitTreap<char>::insert)
 		.def("erase", &ImplicitTreap<char>::erase)
-		.def("slit", &ImplicitTreap<char>::slit)
 		.def("copy", &ImplicitTreap<char>::copy)
 		.def("cut", &ImplicitTreap<char>::cut)
 		.def("size", &ImplicitTreap<char>::size)
 		.def("search", &ImplicitTreap<char>::search)
+		.def("delete_range", &ImplicitTreap<char>::delete_range)
 		.def("print", &ImplicitTreap<char>::print)
 		.def("insert_last", &ImplicitTreap<char>::insert_last)
 		.def("paste", &ImplicitTreap<char>::paste)
