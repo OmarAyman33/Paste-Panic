@@ -11,9 +11,9 @@ public:
 
     leaderboard_treap(){}
 
-    void registerTime(string userID, float newTime) {
-        Leaderboard_playerID newEntryByPlayer(userID, newTime);
-        Leaderboard_time     newEntryByTime(newTime, userID);
+    void registerTime(string userID, int wpm,float newTime) {
+        Leaderboard_playerID newEntryByPlayer(userID, wpm, newTime);
+        Leaderboard_time     newEntryByTime(newTime,wpm, userID);
 
         // Check if the player already exists
         treap<Leaderboard_playerID>::Node* existingPlayerNode = player_Times.search(newEntryByPlayer);
@@ -26,16 +26,16 @@ public:
         }
 
         
-        float currentBestTime = existingPlayerNode->key.time;
+        float currentBestWPM = existingPlayerNode->key.wpm;
 
         // If the new time is slower (or equal), we don't update the treap(s).
-        if (newTime >= currentBestTime) {
+        if (wpm <= currentBestWPM) {
             return;
         }
 
         // 4. Update the records
         // We reconstruct the old time object so we can remove it from the time_Leaderboard
-        Leaderboard_time oldEntryByTime(currentBestTime, userID);
+        Leaderboard_time oldEntryByTime(existingPlayerNode->key.time, currentBestWPM, userID);
 
         time_Leaderboard.updateNode(oldEntryByTime, newEntryByTime);
         player_Times.updateNode(existingPlayerNode->key, newEntryByPlayer);
@@ -51,7 +51,8 @@ PYBIND11_MODULE(leaderboard_treap, m) {
      // defining the leaderboard time class variables as the getTop10 function returns a pointer to an array of Leaderboard_time objects
 	pybind11::class_<Leaderboard_time>(m, "LeaderboardTime")
 		.def_readwrite("time", &Leaderboard_time::time)
-		.def_readwrite("playerID", &Leaderboard_time::player_id);
+		.def_readwrite("playerID", &Leaderboard_time::player_id)
+        .def_readwrite("wpm", &Leaderboard_time::wpm);
 
 	pybind11::class_<leaderboard_treap>(m, "LeaderboardTreap")
 		.def(pybind11::init<>())

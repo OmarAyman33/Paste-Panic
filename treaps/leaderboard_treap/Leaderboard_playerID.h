@@ -7,11 +7,12 @@ class Leaderboard_playerID
 {
 public:
     string player_id;
+    int wpm;    
     float time;
 
     // Constructors
-    Leaderboard_playerID(string id, float t) : player_id(id), time(t) {}
-    Leaderboard_playerID() : player_id(""), time(0) {}
+    Leaderboard_playerID(string id, int w, float t) : player_id(id), wpm(w), time(t) {}
+    Leaderboard_playerID() : player_id(""), wpm(0), time(0) {}
 
     // --- Comparison Operator Overloads ---
 

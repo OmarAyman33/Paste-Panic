@@ -8,11 +8,12 @@ class Leaderboard_time
 {
 public:
     float time;
+    int wpm;
     string player_id;
 
     // Constructors
-    Leaderboard_time(float t, string id) : time(t), player_id(id) {}
-    Leaderboard_time() : time(0), player_id("") {}
+    Leaderboard_time(float t, int w, string id) : time(t), wpm(w), player_id(id) {}
+    Leaderboard_time() : time(0), wpm(0), player_id("") {}
     // Comparison Operator Overloads 
 
     // Equality: Both time and ID must be the same
@@ -28,7 +29,7 @@ public:
     // Less Than: Primary check on time, secondary check on ID
     bool operator<(const Leaderboard_time& other) const {
         if (this->time != other.time) {
-            return this->time < other.time;
+            return this->wpm > other.wpm;
         }
         return this->player_id < other.player_id;
     }
@@ -36,7 +37,7 @@ public:
     // Greater Than: Primary check on time, secondary check on ID
     bool operator>(const Leaderboard_time& other) const {
         if (this->time != other.time) {
-            return this->time > other.time;
+            return this->wpm < other.wpm;
         }
         return this->player_id > other.player_id;
     }
