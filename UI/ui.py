@@ -679,7 +679,7 @@ class GamePage(NeonPage):
                 # After delete, cursor is at start
             
             new_text, new_cursor = TextEditor.type_char(current_text, cursor, event.char)
-            self.WriteTreap.insert(new_cursor, event.char) 
+            self.WriteTreap.insert(new_cursor -1, event.char) 
             self._update_text_and_cursor(new_text, new_cursor)
             
             self._start_timer_if_needed()
@@ -764,7 +764,7 @@ class GamePage(NeonPage):
         self.text.focus_set()
 
         
-        self.WriteTreap = implicit_treap() 
+        self.WriteTreap = implicit_treap.implicittreap() 
 
         self._reset_timer_label()
         self.status_label.configure(text="TYPE TO START")
@@ -823,8 +823,11 @@ class GamePage(NeonPage):
         self._stop_timer()
         
         # Get result from engine
-        res: GameResult = self.app.engine.get_results()
-        
+        # res: GameResult = self.app.engine.get_results()
+        res = GameResult(self.app.engine.player_name, 
+                         self.app.engine.difficulty,
+                         int(self.WriteTreap.size() / 5 / self.app.engine.get_elapsed_time() * 60),
+                         self.app.engine.get_elapsed_time())
         self._save_and_show_results(res)
 
     def _save_and_show_results(self, res: GameResult) -> None:
@@ -836,12 +839,6 @@ class GamePage(NeonPage):
             time_seconds=res.time_seconds # Optional param I added for Python fix
         )
         
-        self.app.leaderboard_service.insert_player(
-            username=res.player_name,
-            difficulty=res.difficulty,
-            score=res.wpm,
-            time_seconds=res.time_seconds # Optional param added for Python prototype to support time display
-        )
         
         # Note: insert_player in the requested C++ interface might be strict (username, diff, score).
         # We overloaded it in Python to allow passing time_seconds for better UI feedback.
@@ -1260,9 +1257,10 @@ class LeaderboardPage(NeonPage):
                  # Check if we are in the displayed list
                  in_list = False
                  for entry in entries:
-                     if (entry.player_name == last_result.player_name and
-                         entry.wpm == last_result.wpm and
-                         abs(entry.time_seconds - last_result.time_seconds) < 0.01):
+                     player_name, wpm, time_seconds, _ = entry  
+                     if (player_name == last_result.player_name and
+                         wpm == last_result.wpm and
+                         abs(time_seconds - last_result.time_seconds) < 0.01):
                          in_list = True
                          break
                  
