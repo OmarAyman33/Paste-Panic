@@ -1,9 +1,12 @@
 #pragma once
 #include <iostream>
+#include <string>
 #include <cstdlib>
 #include <stdexcept>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+
+using namespace std;
 
 template<typename T>
 class ImplicitTreap {
@@ -41,31 +44,31 @@ private:
 			(t->right ? t->right->size : 0);
 	}
 
-    nodePtr copySubtree(nodePtr node) {
-		if (!node) return nullptr;
-		nodePtr newNode = new node(node->value);
-		newNode->priority = node->priority;
-		newNode->size = node->size;
-		newNode->left = copySubtree(node->left);
-		newNode->right = copySubtree(node->right);
-		return newNode;
-	}
+    nodePtr copySubtree(nodePtr root) {
+        if (!root) return nullptr;
+        nodePtr newNode = new node(root->value);
+        newNode->priority = root->priority;
+        newNode->size = root->size;
+        newNode->left = copySubtree(root->left);
+        newNode->right = copySubtree(root->right);
+        return newNode;
+    }
 
-	void clear(nodePtr node) {
-		if (!node) return;
-		clear(node->left);   
-		clear(node->right);  
-		delete node;         
-	}
-	
-	T search(nodePtr root, int k) {
+    void clear(nodePtr root) {
+        if (!root) return;
+        clear(root->left);
+        clear(root->right);
+        delete root;
+    }
+
+	T _search(nodePtr root, long long k) {
 		if (!root || k > (root->size) - 1 || k < 0) {
 			throw std::out_of_range("index out of range");
 		}
 		long long num = root->left ? root->left->size : 0;
 		if (k == num) return (root->value);
-		else if (k < num) return search(root->left, k);
-		else return search(root->right, k - num - 1);
+		else if (k < num) return _search(root->left, k);
+		else return _search(root->right, k - num - 1);
 	}
 
 	void split(nodePtr root, long long k, nodePtr& l, nodePtr& r) {
@@ -239,12 +242,12 @@ public:
 		if (!root) {
 			throw std::out_of_range("empty Treap");
 		}
-		return search(root, k);
+		return _search(root, k);
 	}
 
 	int check_equal_so_far(const string &other , bool& complete) {
-		int n = root.size();
-		int other_len = other.length();
+		int n = size();
+		int other_len = (int)other.length();
 		for (int i = 0; i < n; i++) {
 			if (search(i) != other[i]) return i;
 		}
@@ -271,7 +274,7 @@ public:
 };
 
 PYBIND11_MODULE(implicit_treap, m) {
-	pybind11::class_<ImplicitTreap<char>>(m, "ImplicitTreapchar")
+	pybind11::class_<ImplicitTreap<char>>(m, "implicittreap")
 		.def(pybind11::init<>())
 		.def("insert", &ImplicitTreap<char>::insert)
 		.def("erase", &ImplicitTreap<char>::erase)
