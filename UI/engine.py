@@ -21,8 +21,9 @@ class GameEngine:
 
     PASSAGES: Dict[str, List[str]] = {
     "Easy": [
-        "May the Force be with you.",
+        "ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF ABC DEF",
         "There's no place like home.",
+        "ThE QuIcK FoX ThE QuIcK FoX JuMpS OvEr ThE QuIcK FoX ThE QuIcK FoX JuMpS OvEr JuMpS OvEr JuMpS OvEr",
         "I'm going to make him an offer he can't refuse.",
     ],
     "Medium": [
@@ -31,9 +32,10 @@ class GameEngine:
         "The first rule of Fight Club is: you do not talk about Fight Club.",
     ],
     "Hard": [
-        "I've seen things you people wouldn't believe. Attack ships on fire off the shoulder of Orion. I watched C-beams glitter in the dark near the Tannhäuser Gate. All those moments will be lost in time, like tears in rain. Time to die.",
+        "The alphabet sequence flow appears naturally in this paragraph because the alphabet sequence is mentioned repeatedly and the sequence flow continues smoothly so anyone scanning the text will notice alphabet sequence flow again and again while alphabet sequence and sequence flow occur separately in different parts making alphabet sequence flow easy to reconstruct faster by copying instead of typing the alphabet sequence flow manually every time",
         "The path of the righteous man is beset on all sides by the inequities of the selfish and the tyranny of evil men. Blessed is he who, in the name of charity and good will, shepherds the weak through the valley of the darkness.",
         "It's like in the great stories, Mr. Frodo. The ones that really mattered. Full of darkness and danger they were. And sometimes you didn't want to know the end, because how could the end be happy? How could the world go back to the way it was when so much bad had happened?",
+        "L1ghtning St@rburst Sh1mmer Jumps! St@rburst Sh1mmer Jumps! St@rburst Sh1mmer Jumps! Sh1mmer Jumps! Ov3rflow Ov3rflow Ov3rflow Ov3rflow Ov3rflow",
     ],
     "Time-Trial": [
         "Let me tell you something you already know. The world ain't all sunshine and rainbows. It's a very mean and nasty place and I don't care how tough you are it will beat you to your knees and keep you there permanently if you let it. You, me, or nobody is gonna hit as hard as life. But it ain't about how hard you hit. It's about how hard you can get hit and keep moving forward.",
