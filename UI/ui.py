@@ -1257,9 +1257,10 @@ class LeaderboardPage(NeonPage):
                  # Check if we are in the displayed list
                  in_list = False
                  for entry in entries:
-                     if (entry.player_name == last_result.player_name and
-                         entry.wpm == last_result.wpm and
-                         abs(entry.time_seconds - last_result.time_seconds) < 0.01):
+                     name,wpm,time_seconds,difficulty = entry
+                     if (name == last_result.player_name and
+                         wpm == last_result.wpm and
+                         abs(time_seconds - last_result.time_seconds) < 0.01):
                          in_list = True
                          break
                  

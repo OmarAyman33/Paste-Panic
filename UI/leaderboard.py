@@ -134,7 +134,8 @@ class LeaderboardService:
         list = []
         for entry in top10:
             list.append((entry.playerID, entry.wpm, entry.time, difficulty))
-            
+            print(entry.playerID, entry.wpm, entry.time, difficulty)
+        
         return list
             
 
