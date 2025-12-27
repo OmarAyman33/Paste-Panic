@@ -10,7 +10,7 @@ public:
     treap<Leaderboard_playerID> player_Times;
 
     leaderboard_treap(){}
-
+    // dummy line to force the compiler to rebuild
     void registerTime(string userID, int wpm,float newTime) {
         Leaderboard_playerID newEntryByPlayer(userID, wpm, newTime);
         Leaderboard_time     newEntryByTime(newTime,wpm, userID);

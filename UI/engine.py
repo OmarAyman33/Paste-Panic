@@ -109,12 +109,15 @@ class GameEngine:
         self.end_time = time.perf_counter()
         
         # Calculate correct characters for WPM to prevent mash-to-win
-        self.wpm = int(len(self.target_text) / 5.0)
-
-
+        # self.wpm = int(len(self.target_text) / 5.0)
+        _,_1,correct = self.submit_text(final_typed_text)
+        correct_chars = 0
+        for char in correct:
+            if char:
+                correct_chars += 1
         elapsed = self.end_time - self.start_time
         minutes = max(elapsed / 60.0, 1e-6)
-        # self.wpm = int(((correct_chars / 5.0) / minutes) + 0.5)
+        self.wpm = int(((correct_chars / 5.0) / minutes) + 0.5)
 
             
         self.completed = True

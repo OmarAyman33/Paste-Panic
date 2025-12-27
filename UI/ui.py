@@ -548,7 +548,7 @@ class GamePage(NeonPage):
 
         tk.Label(
             editor_header,
-            text="HOOKS READY: CUT / COPY / PASTE / APPEND / DELETE / INSERT",
+            text="NOTE: YOU CAN COPY AND PASTE AWAY, ITS THE NAME OF THE GAME",
             bg=Theme.PANEL,
             fg=Theme.MUTED,
             font=Theme.font(9, "bold"),
@@ -836,7 +836,7 @@ class GamePage(NeonPage):
             username=res.player_name,
             difficulty=res.difficulty,
             score=res.wpm,
-            time_seconds=res.time_seconds # Optional param I added for Python fix
+            time_seconds=res.time_seconds 
         )
         
         

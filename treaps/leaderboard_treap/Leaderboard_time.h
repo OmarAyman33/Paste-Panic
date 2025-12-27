@@ -18,7 +18,7 @@ public:
 
     // Equality: Both time and ID must be the same
     bool operator==(const Leaderboard_time& other) const {
-        return (this->time == other.time) && (this->player_id == other.player_id);
+        return (this->wpm == other.wpm) && (this->player_id == other.player_id);
     }
 
 
@@ -26,18 +26,24 @@ public:
         return !(*this == other);
     }
 
-    // Less Than: Primary check on time, secondary check on ID
+    // Less Than: Primary check on WPM, secondary on Time, tertiary on ID
     bool operator<(const Leaderboard_time& other) const {
+        if (this->wpm != other.wpm) {
+            return this->wpm > other.wpm; // Higher WPM is "better" (comes first)
+        }
         if (this->time != other.time) {
-            return this->wpm > other.wpm;
+            return this->time < other.time; // Lower Time is "better"
         }
         return this->player_id < other.player_id;
     }
 
-    // Greater Than: Primary check on time, secondary check on ID
+    // Greater Than: Primary check on WPM, secondary on Time, tertiary on ID
     bool operator>(const Leaderboard_time& other) const {
-        if (this->time != other.time) {
+        if (this->wpm != other.wpm) {
             return this->wpm < other.wpm;
+        }
+        if (this->time != other.time) {
+            return this->time > other.time;
         }
         return this->player_id > other.player_id;
     }
