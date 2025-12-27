@@ -207,7 +207,7 @@ class HomePage(NeonPage):
 
         self.subtitle = tk.Label(
             center,
-            text="TYPE RACER  -  ARCADE EDITION",
+            text="AN ARCADE TYPE RACER WITH A TWIST",
             bg=Theme.PANEL2,
             fg=Theme.NEON_CYAN,
             font=Theme.font(14, "bold"),
@@ -1124,7 +1124,6 @@ class LeaderboardPage(NeonPage):
             highlightthickness=2,
             highlightbackground=Theme.NEON_CYAN,
         )
-
         self.table_frame.pack(fill="both", expand=True)
 
         # Inner frame for the actual table content, allowing for padding within the border
@@ -1175,7 +1174,7 @@ class LeaderboardPage(NeonPage):
         # Get strict-typed entries via new interface
         # Returns List[Tuple[str, int, float, str]] -> (name, wpm, time, diff)
         entries = self.app.leaderboard_service.get_top_10(difficulty)
-
+        print(entries)
         header = tk.Frame(self.table_container, bg=Theme.PANEL)
         header.pack(fill="x")
 
@@ -1246,6 +1245,7 @@ class LeaderboardPage(NeonPage):
                     padx=8
                 ).grid(row=0, column=j, sticky="w", pady=6)
 
+        # Update footer note
         color_name = "PINK" if difficulty == "Time-Trial" else "CYAN"
         
         if last_result is None:
@@ -1257,10 +1257,9 @@ class LeaderboardPage(NeonPage):
                  # Check if we are in the displayed list
                  in_list = False
                  for entry in entries:
-                     player_name, wpm, time_seconds, _ = entry  
-                     if (player_name == last_result.player_name and
-                         wpm == last_result.wpm and
-                         abs(time_seconds - last_result.time_seconds) < 0.01):
+                     if (entry.player_name == last_result.player_name and
+                         entry.wpm == last_result.wpm and
+                         abs(entry.time_seconds - last_result.time_seconds) < 0.01):
                          in_list = True
                          break
                  
