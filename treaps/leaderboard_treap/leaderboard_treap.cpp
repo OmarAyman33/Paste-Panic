@@ -56,7 +56,7 @@ PYBIND11_MODULE(leaderboard_treap, m) {
 
 	pybind11::class_<leaderboard_treap>(m, "LeaderboardTreap")
 		.def(pybind11::init<>())
-		.def("registerTime", &leaderboard_treap::registerTime)
+		.def("registerTime", &leaderboard_treap::registerTime, "A function to register a new time for a player", pybind11::arg("userID"), pybind11::arg("wpm"), pybind11::arg("newTime"))
 		.def("getTop10", [](leaderboard_treap& self){
             Leaderboard_time* top10 = self.getTop10();
             int n = std::min(10, (int)self.time_Leaderboard.size());
@@ -65,5 +65,5 @@ PYBIND11_MODULE(leaderboard_treap, m) {
                 result.append(top10[i]);
             }
             return result;
-        });
+        }, "A function to get the top 10 players");
 }
