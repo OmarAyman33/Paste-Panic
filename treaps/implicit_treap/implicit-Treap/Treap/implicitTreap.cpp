@@ -15,10 +15,10 @@ private:
 
 	class node {
 		public:
-			long long priority;
+			int priority;
 			node* right;
 			node* left;
-			long long size;
+			int size;
 			T value;
 
 			node(T v) : value(v), priority(rand()), size(1),
@@ -61,7 +61,7 @@ private:
         delete root;
     }
 
-	T _search(nodePtr root, long long k) {
+	T _search(nodePtr root, int k) {
 		if (!root || k > (root->size) - 1 || k < 0) {
 			throw std::out_of_range("index out of range");
 		}
@@ -71,7 +71,7 @@ private:
 		else return _search(root->right, k - num - 1);
 	}
 
-	void split(nodePtr root, long long k, nodePtr& l, nodePtr& r) {
+	void split(nodePtr root, int k, nodePtr& l, nodePtr& r) {
 
 		if (root == 0) {
 			r = l = nullptr;
@@ -137,7 +137,7 @@ public:
 		std::cout << endl;
 	}
 
-	void insert(long long pos, T val) {
+	void insert(int pos, T val) {
 		if (pos < 0 || pos > size()) {
 			std::cerr << "Insert position out of range";
 			return;
@@ -155,7 +155,7 @@ public:
 		insert(size(), val);
 	}
 
-	void paste(long long pos, ImplicitTreap& t) {
+	void paste(int pos, ImplicitTreap& t) {
 		if (pos < 0 || pos > size()) {
 			std::cerr << "Insert position out of range";
 			return;
@@ -169,7 +169,7 @@ public:
 		merge(root, L, R);
 	}
 	
-	void erase(long long pos) {
+	void erase(int pos) {
 		if (pos < 0 || pos >= size()) {
 			std::cerr << "Erase position out of range";
 			return;
@@ -196,7 +196,7 @@ public:
 
 	//ipos is initial position in the selected region included.
 	//fpos is final position in the selected region excluded (yes this makes it easier for me)
-	ImplicitTreap copy(long long ipos, long long fpos){
+	ImplicitTreap copy(int ipos, int fpos){
 
 		if (ipos < 0 || fpos > size() || ipos >= fpos) {
 			std::cerr << "Invalid range for copy";
@@ -216,7 +216,7 @@ public:
 		return result;
 	}
 
-	ImplicitTreap cut(long long ipos, long long fpos){
+	ImplicitTreap cut(int ipos, int fpos){
 
 		if (ipos < 0 || fpos > size() || ipos >= fpos) {
 			std::cerr << "Invalid range for copy";
@@ -234,11 +234,11 @@ public:
 		return result;
 	}
 
-	void delete_range(long long ipos, long long fpos){
+	void delete_range(int ipos, int fpos){
 		ImplicitTreap var = cut(ipos, fpos);
 	}
 
-	T search(long long k) {
+	T search(int k) {
 		if (!root) {
 			throw std::out_of_range("empty Treap");
 		}
